@@ -14,8 +14,7 @@ describe('local', () => {
     });
 
     // Create the local login function
-    const login = local<typeof customer>(BASE_URL, PAYLOAD);
-    const user = await login('customer');
+    const user = await local<typeof customer>(BASE_URL, PAYLOAD, { key: 'customer' });
 
     // Expected results
     expect(postSpy).toHaveBeenCalledTimes(1);
