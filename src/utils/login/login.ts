@@ -17,7 +17,8 @@ type LocalProvider = 'local';
 type LocalCredentials = { email: string; password: string };
 
 type SocialProvider = 'google' | 'facebook';
-type SocialCredentials = { social_token: string; social_provider: SocialProvider };
+type SocialCredentials = { social_token: string };
+type SocialPayload = SocialCredentials & { social_provider: string };
 
 type DatabaseRecord = { id: number } & Record<string, unknown>;
 type AuthResponse<TUser extends DatabaseRecord> = IResponse<{ [x: string]: TUser }>;
@@ -34,13 +35,12 @@ type User<TProps extends DatabaseRecord> = { token: string } & TProps;
 async function login<TRecord extends DatabaseRecord = DatabaseRecord>(
   config: LoginConfig
 ): Promise<User<TRecord> | null> {
-  const client = config.httpClient || axios;
+  const client: AxiosInstance = config.httpClient || axios;
+  const payload: LocalCredentials | SocialPayload =
+    config.provider === 'local' ? config.credentials : { ...config.credentials, social_provider: config.provider };
+
   try {
-    const { data, headers } = await client.post<AuthResponse<TRecord>>(
-      config.apiUrl,
-      config.credentials,
-      config.httpConfig
-    );
+    const { data, headers } = await client.post<AuthResponse<TRecord>>(config.apiUrl, payload, config.httpConfig);
     const user = data.data[config.dataKey];
     const token = headers.authorization?.split(' ')[1];
     return { ...user, token };

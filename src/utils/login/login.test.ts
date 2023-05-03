@@ -35,7 +35,7 @@ describe('login', () => {
     // Test case constants
     const BASE_URL: string = 'https://sugarmozi-backend.dev.fotex.net/api/public/auth/social';
     const PROVIDER: Provider = 'google';
-    const PAYLOAD: Credentials = { social_token: 'GOOGLE_JWT_TOKEN', social_provider: PROVIDER };
+    const PAYLOAD: Credentials = { social_token: 'GOOGLE_JWT_TOKEN' };
 
     // Create the local login function
     const config: LoginConfig = { apiUrl: BASE_URL, provider: PROVIDER, credentials: PAYLOAD, dataKey: 'customer' };
@@ -43,7 +43,11 @@ describe('login', () => {
 
     // Expected results
     expect(postSpy).toHaveBeenCalledTimes(1);
-    expect(postSpy).toHaveBeenCalledWith(config.apiUrl, config.credentials, config.httpConfig);
+    expect(postSpy).toHaveBeenCalledWith(
+      config.apiUrl,
+      { ...config.credentials, social_provider: PROVIDER },
+      config.httpConfig
+    );
     expect(user?.id).toEqual(1);
     expect(user?.token).toEqual('JWT_TOKEN');
   });
