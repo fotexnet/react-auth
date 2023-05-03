@@ -1,1 +1,1 @@
-export { default as local, Credentials } from './local/local';
+export { default as login, LoginConfig, SocialProvider, SocialCredentials, LocalCredentials } from './login/login';
