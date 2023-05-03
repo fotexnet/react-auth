@@ -53,9 +53,9 @@ async function login<TRecord extends DatabaseRecord = DatabaseRecord>(
 export default login;
 
 export function isLocalCredentials(credentials: Credentials): credentials is LocalCredentials {
-  return Object.hasOwn(credentials, 'email') && Object.hasOwn(credentials, 'password');
+  return credentials.hasOwnProperty('email') && credentials.hasOwnProperty('password');
 }
 
 export function isSocialCredentials(credentials: Credentials): credentials is SocialCredentials {
-  return Object.hasOwn(credentials, 'social_token');
+  return credentials.hasOwnProperty('social_token');
 }
