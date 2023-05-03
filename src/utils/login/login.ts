@@ -2,6 +2,8 @@ import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import IResponse from '../../interfaces/IResponse';
 
 export type Credentials = LocalCredentials | SocialCredentials;
+export type LocalCredentials = { email: string; password: string };
+export type SocialCredentials = { social_token: string };
 export type Provider = LocalProvider | SocialProvider;
 export type LoginConfig = {
   dataKey: string;
@@ -14,10 +16,8 @@ export type LoginConfig = {
 );
 
 type LocalProvider = 'local';
-type LocalCredentials = { email: string; password: string };
-
 type SocialProvider = 'google' | 'facebook';
-type SocialCredentials = { social_token: string };
+
 type SocialPayload = SocialCredentials & { social_provider: string };
 
 type DatabaseRecord = { id: number } & Record<string, unknown>;
@@ -50,3 +50,11 @@ async function login<TRecord extends DatabaseRecord = DatabaseRecord>(
 }
 
 export default login;
+
+export function isLocalCredentials(credentials: Credentials): credentials is LocalCredentials {
+  return Object.hasOwn(credentials, 'email') && Object.hasOwn(credentials, 'password');
+}
+
+export function isSocialCredentials(credentials: Credentials): credentials is SocialCredentials {
+  return Object.hasOwn(credentials, 'social_token');
+}
