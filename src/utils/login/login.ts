@@ -1,18 +1,23 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import IResponse from '../../interfaces/IResponse';
 
-export type LocalCredentials = { email: string; password: string };
-export type SocialCredentials = { social_token: string; social_provider: SocialProvider };
-export type SocialProvider = 'google' | 'facebook';
+export type Credentials = LocalCredentials | SocialCredentials;
+export type Provider = LocalProvider | SocialProvider;
 export type LoginConfig = {
   dataKey: string;
   apiUrl: string;
   httpClient?: AxiosInstance;
   httpConfig?: AxiosRequestConfig;
 } & (
-  | { provider: 'local'; credentials: LocalCredentials }
+  | { provider: LocalProvider; credentials: LocalCredentials }
   | { provider: SocialProvider; credentials: SocialCredentials }
 );
+
+type LocalProvider = 'local';
+type LocalCredentials = { email: string; password: string };
+
+type SocialProvider = 'google' | 'facebook';
+type SocialCredentials = { social_token: string; social_provider: SocialProvider };
 
 type DatabaseRecord = { id: number } & Record<string, unknown>;
 type AuthResponse<TUser extends DatabaseRecord> = IResponse<{ [x: string]: TUser }>;

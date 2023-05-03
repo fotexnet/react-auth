@@ -4,10 +4,8 @@
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Package contents](#package-contents)
-  - [Components](#components)
-    - [LocalLogin](#locallogin)
-    - [GoogleLogin](#googlelogin)
-    - [FacebookLogin](#facebooklogin)
+  - [Utils](#utils)
+    - [login](#login)
 
 # Prerequisites
 
@@ -24,10 +22,23 @@
 
 # Package contents
 
-## Components
+## Utils
 
-### LocalLogin
+### login
 
-### GoogleLogin
+Provides an easy way to get an access token for the `fotexnet` infrastructure.
+Define the login endpoint via `apiUrl`, the `dataKey` which will be used to identify the user object
+and a `provider` method as well as the associated `credentials` info.
 
-### FacebookLogin
+**Configuration object**
+
+| parameter     | type                 | required | default | description                                                         |
+| ------------- | -------------------- | -------- | ------- | ------------------------------------------------------------------- |
+| `dataKey`     | `string`             | Yes      | -       | This key will be used to acces the user object on the response body |
+| `apiUrl`      | `string`             | Yes      | -       | Full url of the login endpoint                                      |
+| `provider`    | `Provider`           | Yes      | -       | Authentication provider                                             |
+| `credentials` | `Credentials`        | Yes      | -       | Authentication info                                                 |
+| `httpClient`  | `AxiosInstance`      | No       | `axios` | -                                                                   |
+| `httpConfig`  | `AxiosRequestConfig` | No       | -       | -                                                                   |
+
+**Supported providers:** `'local' | 'google' | 'facebook'`
