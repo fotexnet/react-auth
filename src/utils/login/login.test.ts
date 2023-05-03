@@ -1,5 +1,5 @@
 import axios from 'axios';
-import login, { LocalCredentials, LoginConfig, SocialCredentials, SocialProvider } from './login';
+import login, { Credentials, LoginConfig, Provider } from './login';
 
 describe('login', () => {
   const customer = { id: 1, first_name: 'Viktor', last_name: 'Nagy', email: 'nagy.viktor@fotex.net' };
@@ -18,7 +18,7 @@ describe('login', () => {
   it('should return user object via local authentication', async () => {
     // Test case constants
     const BASE_URL: string = 'https://sugarmozi-backend.dev.fotex.net/api/public/auth';
-    const PAYLOAD: LocalCredentials = { email: 'nagy.viktor@fotex.net', password: 'Viktor10' };
+    const PAYLOAD: Credentials = { email: 'nagy.viktor@fotex.net', password: 'Viktor10' };
 
     // Create the local login function
     const config: LoginConfig = { apiUrl: BASE_URL, provider: 'local', credentials: PAYLOAD, dataKey: 'customer' };
@@ -34,8 +34,8 @@ describe('login', () => {
   it('should return user object via social authentication', async () => {
     // Test case constants
     const BASE_URL: string = 'https://sugarmozi-backend.dev.fotex.net/api/public/auth/social';
-    const PROVIDER: SocialProvider = 'google';
-    const PAYLOAD: SocialCredentials = { social_token: 'GOOGLE_JWT_TOKEN', social_provider: PROVIDER };
+    const PROVIDER: Provider = 'google';
+    const PAYLOAD: Credentials = { social_token: 'GOOGLE_JWT_TOKEN', social_provider: PROVIDER };
 
     // Create the local login function
     const config: LoginConfig = { apiUrl: BASE_URL, provider: PROVIDER, credentials: PAYLOAD, dataKey: 'customer' };
