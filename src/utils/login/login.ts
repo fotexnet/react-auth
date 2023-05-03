@@ -21,7 +21,8 @@ type SocialCredentials = { social_token: string; social_provider: SocialProvider
 
 type DatabaseRecord = { id: number } & Record<string, unknown>;
 type AuthResponse<TUser extends DatabaseRecord> = IResponse<{ [x: string]: TUser }>;
-type User<TProps extends DatabaseRecord> = { token: string } & TProps;
+
+export type User<TProps extends DatabaseRecord> = { token: string } & TProps;
 
 /**
  * Provides an easy way to get an access token for the `fotexnet` infrastructure.
