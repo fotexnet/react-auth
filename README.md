@@ -6,6 +6,8 @@
 - [Package contents](#package-contents)
   - [Utils](#utils)
     - [login](#login)
+    - [isLocalCredentials](#islocalcredentials)
+    - [isSocialCredentials](#issocialcredentials)
 
 # Prerequisites
 
@@ -42,3 +44,25 @@ and a `provider` method as well as the associated `credentials` info.
 | `httpConfig`  | `AxiosRequestConfig` | No       | -       | -                                                                   |
 
 **Supported providers:** `'local' | 'google' | 'facebook'`
+
+### isLocalCredentials
+
+This is a type guard function for the `Credentials` type to check wheter or not it implements the `LocalCredentials` type.
+
+```javascript
+const isLocal = isLocalCredentials({ email: '', password: '' }); // true
+const isLocal = isLocalCredentials({ id: 0, name: '', email: '', password: '' }); // true
+const isLocal = isLocalCredentials({ email: '' }); // false
+const isLocal = isLocalCredentials({ name: '' }); // false
+```
+
+### isSocialCredentials
+
+This is a type guard function for the `Credentials` type to check wheter or not it implements the `SocialCredentials` type.
+
+```javascript
+const isSocial = isSocialCredentials({ social_token: '' }); // true
+const isSocial = isSocialCredentials({ id: 0, name: '', social_token: '' }); // true
+const isSocial = isSocialCredentials({}); // false
+const isSocial = isSocialCredentials({ name: '' }); // false
+```
