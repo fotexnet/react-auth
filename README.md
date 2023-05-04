@@ -4,11 +4,13 @@
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Package contents](#package-contents)
+  - [Wrappers](#wrappers)
+    - [withAuthGuard](#withauthguard)
   - [Utils](#utils)
     - [login](#login)
     - [isLocalCredentials](#islocalcredentials)
     - [isSocialCredentials](#issocialcredentials)
-  - [createUserProvider](#createuserprovider)
+    - [createUserProvider](#createuserprovider)
 
 # Prerequisites
 
@@ -24,6 +26,43 @@
 2. Install the package using `yarn add @fotexnet/react-auth`
 
 # Package contents
+
+## Wrappers
+
+### withAuthGuard
+
+Provides protection for any component. Convenient way to use it is to wrap the target component when exporting it.
+
+```jsx
+export default withAuthGuard(Component, { url: 'YOUR_API', createAuthHeader: () => ['header_name', 'token_value'] });
+```
+
+It requires an `AuthGuardConfig` object which requires an `url` and a `createAuthHeader` function.
+
+| parameter                   | type                     | required | default           | description                                                                                                                       |
+| --------------------------- | ------------------------ | -------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `url`                       | `string`                 | Yes      | -                 | An http `GET` request will be sent to this `url` with the required authorization headers to check that the user's token is active |
+| `createAuthHeader`          | `() => [string, string]` | Yes      | -                 | Returns a tuple where the first element is the name of the header and the second element is the token                             |
+| `LoadingIndicatorComponent` | `React.ComponentType`    | No       | `FallbackLoading` | While the request is pending, this component will be shown                                                                        |
+| `UnauthorizedComponent`     | `React.ComponentType`    | No       | `Fallback401`     | If the token check returns `401`, this component will be shown                                                                    |
+| `InternalErrorComponent`    | `React.ComponentType`    | No       | `Fallback500`     | If the token check fails for some other reason and the server returns `500`, this component will be shown                         |
+
+**Defaults**
+
+```jsx
+// LoadingIndicatorComponent
+const FallbackLoading = () => <div data-testid="loading">Loading...</div>;
+```
+
+```jsx
+// UnauthorizedComponent
+const Fallback401 = () => <div data-testid="auth-error-401">401</div>;
+```
+
+```jsx
+// InternalErrorComponent
+const Fallback500 = () => <div data-testid="auth-error-500">500</div>;
+```
 
 ## Utils
 
@@ -68,7 +107,7 @@ const isSocial = isSocialCredentials({}); // false
 const isSocial = isSocialCredentials({ name: '' }); // false
 ```
 
-## createUserProvider
+### createUserProvider
 
 Provides an easy way to share user data throughout the application. Returns a `UserProvider` wrapper, which you can use to wrap your app, and a `useUser` hook to track user data.
 The `useUser` hook has 2 methods (`set` and `unset`), that are used to refresh the UI, as well as the `user` object.
@@ -115,4 +154,8 @@ login(config).then(user => set(user));
 // or
 
 login(config).then(set);
+```
+
+```
+
 ```
