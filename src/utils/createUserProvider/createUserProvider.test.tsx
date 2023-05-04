@@ -33,14 +33,14 @@ describe('createUserProvider', () => {
 
   it('updates the user', () => {
     Component = () => {
-      const { user, login, logout } = factory.useUser();
+      const { user, set, unset } = factory.useUser();
       return (
         <div>
           <div data-testid="user">{JSON.stringify(user)}</div>
-          <button data-testid="login" onClick={() => login({ id: 1, email: 'dummy@test.com' })}>
+          <button data-testid="login" onClick={() => set({ id: 1, email: 'dummy@test.com' })}>
             Login
           </button>
-          <button data-testid="logout" onClick={() => logout()}>
+          <button data-testid="logout" onClick={() => unset()}>
             Logout
           </button>
         </div>
