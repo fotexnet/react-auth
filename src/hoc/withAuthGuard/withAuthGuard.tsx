@@ -1,15 +1,18 @@
-import axios from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import React, { useCallback, useEffect, useState } from 'react';
 
 export type AuthGuardConfig = {
   url: string;
   createAuthHeader: () => [string, string];
+  httpClient?: AxiosInstance;
+  httpConfig?: AxiosRequestConfig;
   LoadingIndicatorComponent?: React.ComponentType;
   UnauthorizedComponent?: React.ComponentType;
   InternalErrorComponent?: React.ComponentType;
 };
 
 function withAuthGuard<T extends object>(Component: React.ComponentType<T>, config: AuthGuardConfig): React.FC<T> {
+  const client = config.httpClient || axios;
   // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
   return function AuthGuard(props) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -19,8 +22,12 @@ function withAuthGuard<T extends object>(Component: React.ComponentType<T>, conf
       const controller = new AbortController();
       const [name, token] = config.createAuthHeader();
 
-      axios
-        .get(config.url, { headers: { [name]: token }, signal: controller.signal })
+      client
+        .get(config.url, {
+          ...config.httpConfig,
+          headers: { ...config.httpConfig?.headers, [name]: token },
+          signal: controller.signal,
+        })
         .then(response => setStatus(response.status))
         .finally(() => setIsLoading(false));
 
