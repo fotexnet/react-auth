@@ -9,3 +9,9 @@ export {
   LocalCredentials,
   SocialCredentials,
 } from './login/login';
+export {
+  default as createUserProvider,
+  UserProviderFactory,
+  UserObject,
+  IUser,
+} from './createUserProvider/createUserProvider';
