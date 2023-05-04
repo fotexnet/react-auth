@@ -8,8 +8,8 @@ export interface IUser {
 
 export type UserObject<TUser extends IUser = IUser> = {
   user: TUser | null;
-  login: (user: TUser) => void;
-  logout: () => void;
+  set: (user: TUser) => void;
+  unset: () => void;
 };
 
 export type UserProviderFactory<TUser extends IUser = IUser> = {
@@ -25,9 +25,7 @@ function createUserProvider<TUser extends IUser = IUser>(): UserProviderFactory<
     const [user, setUser] = useState<TUser | null>(() => cookies.default || null);
 
     return (
-      <UserContext.Provider value={{ user, login: setUser, logout: () => setUser(null) }}>
-        {children}
-      </UserContext.Provider>
+      <UserContext.Provider value={{ user, set: setUser, unset: () => setUser(null) }}>{children}</UserContext.Provider>
     );
   };
 

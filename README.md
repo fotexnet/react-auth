@@ -8,6 +8,7 @@
     - [login](#login)
     - [isLocalCredentials](#islocalcredentials)
     - [isSocialCredentials](#issocialcredentials)
+  - [createUserProvider](#createuserprovider)
 
 # Prerequisites
 
@@ -65,4 +66,53 @@ const isSocial = isSocialCredentials({ social_token: '' }); // true
 const isSocial = isSocialCredentials({ id: 0, name: '', social_token: '' }); // true
 const isSocial = isSocialCredentials({}); // false
 const isSocial = isSocialCredentials({ name: '' }); // false
+```
+
+## createUserProvider
+
+Provides an easy way to share user data throughout the application. Returns a `UserProvider` wrapper, which you can use to wrap your app, and a `useUser` hook to track user data.
+The `useUser` hook has 2 methods (`set` and `unset`), that are used to refresh the UI, as well as the `user` object.
+
+```jsx
+// does not matter where you create it
+const { UserProvider, useUser } = createUserProvider();
+
+// App.js
+function App() {
+  return (
+    <UserProvider>
+      <Component />
+    </UserProvider>
+  );
+}
+
+// Component.js
+function Component() {
+  const { user, set, unset } = useUser();
+  return (
+    <div>
+      <div>{JSON.stringify(user || '')}</div>
+      <button onClick={() => set({ id: 1, email: 'dummy@test.com' })}>Login</button>
+      <button onClick={() => unset()}>Logout</button>
+    </div>
+  );
+}
+```
+
+In the example above the `set` method requires an object which will be set as the `user`. You can use the [`login`](#login) functionality in conjuction with this
+to transfer and update the `user` object.
+
+```jsx
+const config = {
+  apiUrl: 'YOUR_API_URL',
+  provider: 'local',
+  credentials: { email: 'dummy@test.com', password: 'supersecretpassword' },
+  dataKey: 'customer',
+};
+
+login(config).then(user => set(user));
+
+// or
+
+login(config).then(set);
 ```
