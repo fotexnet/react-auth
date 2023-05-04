@@ -43,6 +43,8 @@ It requires an `AuthGuardConfig` object which requires an `url` and a `createAut
 | --------------------------- | ------------------------ | -------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `url`                       | `string`                 | Yes      | -                 | An http `GET` request will be sent to this `url` with the required authorization headers to check that the user's token is active |
 | `createAuthHeader`          | `() => [string, string]` | Yes      | -                 | Returns a tuple where the first element is the name of the header and the second element is the token                             |
+| `httpClient`                | `AxiosInstance`          | No       | `axios`           | -                                                                                                                                 |
+| `httpConfig`                | `AxiosRequestConfig`     | No       | -                 | -                                                                                                                                 |
 | `LoadingIndicatorComponent` | `React.ComponentType`    | No       | `FallbackLoading` | While the request is pending, this component will be shown                                                                        |
 | `UnauthorizedComponent`     | `React.ComponentType`    | No       | `Fallback401`     | If the token check returns `401`, this component will be shown                                                                    |
 | `InternalErrorComponent`    | `React.ComponentType`    | No       | `Fallback500`     | If the token check fails for some other reason and the server returns `500`, this component will be shown                         |
@@ -154,8 +156,4 @@ login(config).then(user => set(user));
 // or
 
 login(config).then(set);
-```
-
-```
-
 ```
