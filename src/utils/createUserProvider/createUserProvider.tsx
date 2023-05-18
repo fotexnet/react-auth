@@ -21,11 +21,22 @@ function createUserProvider<TUser extends IUser = IUser>(): UserProviderFactory<
   const UserContext = createContext<UserObject<TUser> | null>(null);
 
   const UserProvider: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => {
-    const [cookies] = useCookies<string, { default?: TUser }>();
+    const [cookies, , deleteCookie] = useCookies<string, { default?: TUser }>();
     const [user, setUser] = useState<TUser | null>(() => cookies.default || null);
 
     return (
-      <UserContext.Provider value={{ user, set: setUser, unset: () => setUser(null) }}>{children}</UserContext.Provider>
+      <UserContext.Provider
+        value={{
+          user,
+          set: setUser,
+          unset: () => {
+            setUser(null);
+            deleteCookie('authorization');
+          },
+        }}
+      >
+        {children}
+      </UserContext.Provider>
     );
   };
 
