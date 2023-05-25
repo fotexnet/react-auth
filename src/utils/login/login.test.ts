@@ -26,7 +26,10 @@ describe('login', () => {
 
     // Expected results
     expect(postSpy).toHaveBeenCalledTimes(1);
-    expect(postSpy).toHaveBeenCalledWith(config.apiUrl, config.credentials, config.httpConfig);
+    expect(postSpy).toHaveBeenCalledWith(config.apiUrl, config.credentials, {
+      ...config.httpConfig,
+      withCredentials: true,
+    });
     expect(user?.id).toEqual(1);
     expect(user?.token).toEqual('JWT_TOKEN');
   });
@@ -46,7 +49,7 @@ describe('login', () => {
     expect(postSpy).toHaveBeenCalledWith(
       config.apiUrl,
       { ...config.credentials, social_provider: PROVIDER },
-      config.httpConfig
+      { ...config.httpConfig, withCredentials: true }
     );
     expect(user?.id).toEqual(1);
     expect(user?.token).toEqual('JWT_TOKEN');
