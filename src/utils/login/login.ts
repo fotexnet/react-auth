@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import IResponse from '../../interfaces/IResponse';
+import cookies from '../cookies/cookies';
 
 export type Credentials = LocalCredentials | SocialCredentials;
 export type LocalCredentials = { email: string; password: string };
@@ -9,7 +10,7 @@ export type LoginConfig = {
   dataKey: string;
   apiUrl: string;
   httpClient?: AxiosInstance;
-  httpConfig?: AxiosRequestConfig;
+  httpConfig?: Omit<AxiosRequestConfig, 'withCredentials'>;
 } & (
   | { provider: LocalProvider; credentials: LocalCredentials }
   | { provider: SocialProvider; credentials: SocialCredentials }
@@ -41,9 +42,13 @@ async function login<TRecord extends DatabaseRecord = DatabaseRecord>(
     config.provider === 'local' ? config.credentials : { ...config.credentials, social_provider: config.provider };
 
   try {
-    const { data, headers } = await client.post<AuthResponse<TRecord>>(config.apiUrl, payload, config.httpConfig);
+    const { data, headers } = await client.post<AuthResponse<TRecord>>(config.apiUrl, payload, {
+      ...config.httpConfig,
+      withCredentials: true,
+    });
     const user = data.data[config.dataKey];
     const token = headers.authorization?.split(' ')[1];
+    cookies.set('Authorization', token, 365 * 1000);
     return { ...user, token };
   } catch (error) {
     return null;
