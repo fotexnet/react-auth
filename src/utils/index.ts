@@ -1,3 +1,10 @@
+export { default as cookies, createCookieName } from './cookies/cookies';
+export {
+  default as createUserProvider,
+  UserProviderFactory,
+  UserObject,
+  IUser,
+} from './createUserProvider/createUserProvider';
 export {
   default as login,
   isLocalCredentials,
@@ -9,9 +16,3 @@ export {
   LocalCredentials,
   SocialCredentials,
 } from './login/login';
-export {
-  default as createUserProvider,
-  UserProviderFactory,
-  UserObject,
-  IUser,
-} from './createUserProvider/createUserProvider';
