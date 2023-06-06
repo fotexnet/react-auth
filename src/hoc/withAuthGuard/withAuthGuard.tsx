@@ -29,6 +29,11 @@ function withAuthGuard<T extends object>(Component: React.ComponentType<T>, conf
           signal: controller.signal,
         })
         .then(response => setStatus(response.status))
+        .catch(err => {
+          if (!axios.isCancel(err)) {
+            console.error(err);
+          }
+        })
         .finally(() => setIsLoading(false));
 
       return () => {
