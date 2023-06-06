@@ -30,9 +30,7 @@ function withAuthGuard<T extends object>(Component: React.ComponentType<T>, conf
         })
         .then(response => setStatus(response.status))
         .catch(err => {
-          if (axios.isAxiosError(err)) {
-            setStatus(err.status);
-          }
+          setStatus(err.response?.status || 500);
         })
         .finally(() => setIsLoading(false));
 
