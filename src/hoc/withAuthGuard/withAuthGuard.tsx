@@ -16,7 +16,7 @@ function withAuthGuard<T extends object>(Component: React.ComponentType<T>, conf
   // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
   return function AuthGuard(props) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [status, setStatus] = useState<number>(Infinity);
+    const [status, setStatus] = useState<number>();
 
     useEffect(() => {
       const controller = new AbortController();
@@ -30,8 +30,8 @@ function withAuthGuard<T extends object>(Component: React.ComponentType<T>, conf
         })
         .then(response => setStatus(response.status))
         .catch(err => {
-          if (!axios.isCancel(err)) {
-            console.error(err);
+          if (axios.isAxiosError(err)) {
+            setStatus(err.status);
           }
         })
         .finally(() => setIsLoading(false));
