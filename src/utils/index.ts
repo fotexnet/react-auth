@@ -1,6 +1,8 @@
 export { default as cookies, createCookieName } from './cookies/cookies';
+export { default as createAuthGuard } from './createAuthGuard/createAuthGuard';
 export {
   default as createUserProvider,
+  UserProviderConfig,
   UserProviderFactory,
   UserObject,
   IUser,

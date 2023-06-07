@@ -54,6 +54,11 @@ function getCookie(cname: string): string {
   return '';
 }
 
-const cookies = { get: getCookie, set: setCookie };
+function deleteCookie(cname: string): void {
+  const name = createCookieName(cname);
+  document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+}
+
+const cookies = { get: getCookie, set: setCookie, delete: deleteCookie };
 
 export default cookies;
