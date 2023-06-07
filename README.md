@@ -6,6 +6,9 @@
 - [Package contents](#package-contents)
   - [Wrappers](#wrappers)
     - [withAuthGuard](#withauthguard)
+  - [Hooks](#hooks)
+    - [useImage](#useimage)
+    - [useCookie](#usecookie)
   - [Utils](#utils)
     - [login](#login)
     - [isLocalCredentials](#islocalcredentials)
@@ -66,6 +69,21 @@ const Fallback401 = () => <div data-testid="auth-error-401">401</div>;
 // InternalErrorComponent
 const Fallback500 = () => <div data-testid="auth-error-500">500</div>;
 ```
+
+## Hooks
+
+### useImage
+
+Provides an easy way to convert an image file into `base64` string. Returns the data url. The API allows you to pass a configuration object where you can modify the request.
+
+```jsx
+function Component() {
+  const imageUrl = useImage('path_to_image');
+  return <img src={imageUrl} />;
+}
+```
+
+### useCookie
 
 ## Utils
 
