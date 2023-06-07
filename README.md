@@ -10,6 +10,7 @@
     - [login](#login)
     - [isLocalCredentials](#islocalcredentials)
     - [isSocialCredentials](#issocialcredentials)
+    - [createAuthGuard](#createauthguard)
     - [createUserProvider](#createuserprovider)
 
 # Prerequisites
@@ -108,6 +109,10 @@ const isSocial = isSocialCredentials({ id: 0, name: '', social_token: '' }); // 
 const isSocial = isSocialCredentials({}); // false
 const isSocial = isSocialCredentials({ name: '' }); // false
 ```
+
+### createAuthGuard
+
+Returns a higher-order component that calls the `[withAuthGuard](#withauthguard)` higher-order component with the provided config object and component. It is used to create global `[withAuthGuard](#withauthguard)` higher-order components.
 
 ### createUserProvider
 
