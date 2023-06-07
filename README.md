@@ -119,9 +119,22 @@ Returns a higher-order component that calls the `[withAuthGuard](#withauthguard)
 Provides an easy way to share user data throughout the application. Returns a `UserProvider` wrapper, which you can use to wrap your app, and a `useUser` hook to track user data.
 The `useUser` hook has 2 methods (`set` and `unset`), that are used to refresh the UI, as well as the `user` object.
 
+**Configuration object:**
+
+| parameter  | type                   | required | default | description                                                                   |
+| ---------- | ---------------------- | -------- | ------- | ----------------------------------------------------------------------------- |
+| `mode`     | `storage` or `fetch`   | Yes      | -       | -                                                                             |
+| `storage`  | `Storage` or `string`  | Yes      | -       | Only available when `mode` is set to `storage`. Used to set initial user data |
+| `key`      | `string`               | Yes      | -       | Only available when `mode` is set to `storage`. Storage key                   |
+| `useFetch` | `() => Promise<TUser>` | Yes      | -       | Only available when `mode` is set to `fetch`. Used to set initial user data   |
+
 ```jsx
 // does not matter where you create it
-const { UserProvider, useUser } = createUserProvider();
+const { UserProvider, useUser } = createUserProvider({
+  mode: 'storage',
+  storage: document.cookie,
+  key: 'default',
+});
 
 // App.js
 function App() {
