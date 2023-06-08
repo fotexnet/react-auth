@@ -1,4 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import axios from 'axios';
 import React from 'react';
 import createUserProvider, { UserProviderFactory } from './createUserProvider';
 
@@ -7,7 +8,15 @@ type User = {
   email: string;
 };
 
+jest.mock('axios');
+
 describe('createUserProvider', () => {
+  const providerOptions = {
+    dataKey: 'user',
+    loginUrl: 'your_api_goes_here',
+    logoutUrl: 'your_api_goes_here',
+  };
+
   describe('fetch mode', () => {
     let factory: UserProviderFactory<User>;
     let Component: React.FC;
@@ -16,6 +25,7 @@ describe('createUserProvider', () => {
     beforeEach(() => {
       const mockFetch: jest.Mock<Promise<User>> = jest.fn();
       factory = createUserProvider<User>({
+        ...providerOptions,
         mode: 'fetch',
         useFetch: mockFetch.mockImplementation(() => Promise.resolve(userData)),
       });
@@ -68,7 +78,10 @@ describe('createUserProvider', () => {
       fireEvent.click(loginBtn);
       expect(JSON.parse(node.textContent || '')).toMatchObject(updatedUser);
       fireEvent.click(logoutBtn);
-      expect(JSON.parse(node.textContent || '')).toEqual(null);
+      await waitFor(() => {
+        expect(JSON.parse(node.textContent || '')).toEqual(null);
+      });
+      expect(axios.post).toHaveBeenCalledWith(providerOptions.logoutUrl, undefined, { withCredentials: true });
     });
   });
   describe('storage mode - cookie', () => {
@@ -77,6 +90,7 @@ describe('createUserProvider', () => {
 
     beforeEach(() => {
       factory = createUserProvider<User>({
+        ...providerOptions,
         mode: 'storage',
         storage: 'cookie',
         key: 'default',
@@ -99,7 +113,7 @@ describe('createUserProvider', () => {
       expect(node.textContent).toEqual('null');
     });
 
-    it('updates the user', () => {
+    it('updates the user', async () => {
       Component = () => {
         const { user, update, logout } = factory.useUser();
         return (
@@ -129,7 +143,10 @@ describe('createUserProvider', () => {
       fireEvent.click(loginBtn);
       expect(JSON.parse(node.textContent || '')).toMatchObject({ id: 1, email: 'dummy@test.com' });
       fireEvent.click(logoutBtn);
-      expect(node.textContent).toEqual('null');
+      await waitFor(() => {
+        expect(JSON.parse(node.textContent || '')).toEqual(null);
+      });
+      expect(axios.post).toHaveBeenCalledWith(providerOptions.logoutUrl, undefined, { withCredentials: true });
     });
   });
 });

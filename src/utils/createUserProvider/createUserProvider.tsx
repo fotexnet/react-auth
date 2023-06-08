@@ -1,6 +1,8 @@
+import axios from 'axios';
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { HttpClient } from '../../interfaces/Record';
 import cookies from '../cookies/cookies';
-import login, { LoginConfig } from '../login/login';
+import login, { LoginConfig, LoginProvider } from '../login/login';
 
 export interface IUser extends Record<string, unknown> {
   id: number;
@@ -10,11 +12,18 @@ export interface IUser extends Record<string, unknown> {
 export type UserObject<TUser extends IUser = IUser> = {
   user: TUser | null;
   update: (user: TUser) => void;
-  login: (config: LoginConfig) => Promise<TUser>;
-  logout: () => void;
+  login: (config: LoginProvider & HttpClient) => Promise<TUser>;
+  logout: (config?: HttpClient) => Promise<void>;
 };
 
-export type UserProviderConfig<TUser extends IUser = IUser> =
+export type UserProviderConfig<TUser extends IUser = IUser> = {
+  loginUrl: string;
+  logoutUrl: string;
+} & UserProviderMode<TUser> &
+  Pick<LoginConfig, 'dataKey'> &
+  HttpClient;
+
+type UserProviderMode<TUser extends IUser = IUser> =
   | { mode: 'storage'; storage: 'localStorage' | 'sessionStorage' | 'cookie'; key: string }
   | { mode: 'fetch'; useFetch: () => Promise<TUser> };
 
@@ -23,9 +32,14 @@ export type UserProviderFactory<TUser extends IUser = IUser> = {
   useUser: () => UserObject<TUser>;
 };
 
-function createUserProvider<TUser extends IUser = IUser>(
-  config: UserProviderConfig<TUser>
-): UserProviderFactory<TUser> {
+function createUserProvider<TUser extends IUser = IUser>({
+  dataKey,
+  loginUrl,
+  logoutUrl,
+  httpClient,
+  httpConfig,
+  ...config
+}: UserProviderConfig<TUser>): UserProviderFactory<TUser> {
   const UserContext = createContext<UserObject<TUser> | null>(null);
   const UserProvider: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => {
     const [user, setUser] = useInitialUser<TUser>(config);
@@ -34,12 +48,20 @@ function createUserProvider<TUser extends IUser = IUser>(
         value={{
           user,
           update: setUser,
-          login: async (config: LoginConfig) => {
-            const user = await login<TUser>(config);
+          login: async ({ httpClient: client, httpConfig: config, ...provider }: LoginProvider & HttpClient) => {
+            const user = await login<TUser>({
+              ...provider,
+              apiUrl: loginUrl,
+              dataKey,
+              httpClient: client || httpClient,
+              httpConfig: config || httpConfig,
+            });
             setUser(user);
             return user;
           },
-          logout: () => {
+          logout: async (http?: HttpClient) => {
+            const client = http?.httpClient || axios;
+            await client.post(logoutUrl, undefined, { ...http?.httpConfig, withCredentials: true });
             setUser(null);
             cookies.delete('authorization');
           },
@@ -63,7 +85,7 @@ export default createUserProvider;
 
 // TODO: set user if mode set to storage (?)
 function useInitialUser<TUser extends IUser = IUser>(
-  config: UserProviderConfig<TUser>
+  config: UserProviderMode<TUser>
 ): [TUser | null, React.Dispatch<React.SetStateAction<TUser | null>>] {
   const [user, setUser] = useState<TUser | null>(null);
 

@@ -85,6 +85,26 @@ function Component() {
 
 ### useCookie
 
+Provides an easy way to use the `cookies` object in a more reactive way. Operates on individual cookies.
+
+```jsx
+function Component() {
+  const { cookie, set, unset } = useCookie('myCookie');
+
+  useEffect(() => {
+    set('myValue');
+  }, []);
+
+  return (
+    <div>
+      <div>{cookie}</div>
+      <button onClick={() => set('JohnDoe')}>Update cookie</button>
+      <button onClick={() => unset()}>Remove cookie</button>
+    </div>
+  );
+}
+```
+
 ## Utils
 
 ### login
@@ -139,18 +159,26 @@ The `useUser` hook has 2 methods (`set` and `unset`), that are used to refresh t
 
 **Configuration object:**
 
-| parameter  | type                   | required | default | description                                                                   |
-| ---------- | ---------------------- | -------- | ------- | ----------------------------------------------------------------------------- |
-| `mode`     | `storage` or `fetch`   | Yes      | -       | -                                                                             |
-| `storage`  | `Storage` or `string`  | Yes      | -       | Only available when `mode` is set to `storage`. Used to set initial user data |
-| `key`      | `string`               | Yes      | -       | Only available when `mode` is set to `storage`. Storage key                   |
-| `useFetch` | `() => Promise<TUser>` | Yes      | -       | Only available when `mode` is set to `fetch`. Used to set initial user data   |
+| parameter    | type                   | required | default | description                                                                   |
+| ------------ | ---------------------- | -------- | ------- | ----------------------------------------------------------------------------- |
+| `mode`       | `storage` or `fetch`   | Yes      | -       | -                                                                             |
+| `storage`    | `Storage` or `string`  | Yes      | -       | Only available when `mode` is set to `storage`. Used to set initial user data |
+| `key`        | `string`               | Yes      | -       | Only available when `mode` is set to `storage`. Storage key                   |
+| `useFetch`   | `() => Promise<TUser>` | Yes      | -       | Only available when `mode` is set to `fetch`. Used to set initial user data   |
+| `dataKey`    | `string`               | Yes      | -       | This key will be used to acces the user object on the response body           |
+| `loginUrl`   | `string`               | Yes      | -       | This `string` will be used for the `login` function                           |
+| `logoutUrl`  | `string`               | Yes      | -       | This `string` will be used for the `logout` function                          |
+| `httpClient` | `AxiosInstance`        | No       | `axios` | -                                                                             |
+| `httpConfig` | `AxiosRequestConfig`   | No       | -       | -                                                                             |
 
 ```jsx
 // does not matter where you create it
 const { UserProvider, useUser } = createUserProvider({
+  dataKey: 'user',
+  loginUrl: 'your_api_goes_here',
+  logoutUrl: 'your_api_goes_here',
   mode: 'storage',
-  storage: document.cookie,
+  storage: 'cookie',
   key: 'default',
 });
 
@@ -165,31 +193,31 @@ function App() {
 
 // Component.js
 function Component() {
-  const { user, set, unset } = useUser();
+  const { user, update, logout } = useUser();
   return (
     <div>
       <div>{JSON.stringify(user || '')}</div>
-      <button onClick={() => set({ id: 1, email: 'dummy@test.com' })}>Login</button>
-      <button onClick={() => unset()}>Logout</button>
+      <button onClick={() => update({ id: 1, email: 'dummy@test.com' })}>Login</button>
+      <button onClick={() => logout()}>Logout</button>
     </div>
   );
 }
 ```
 
-In the example above the `set` method requires an object which will be set as the `user`. You can use the [`login`](#login) functionality in conjuction with this
-to transfer and update the `user` object.
+In the example above the `update` method requires an object which will be set as the `user`. It's supposed to be used for updating the `user` object if neccessary.
 
 ```jsx
 const config = {
-  apiUrl: 'YOUR_API_URL',
   provider: 'local',
   credentials: { email: 'dummy@test.com', password: 'supersecretpassword' },
-  dataKey: 'customer',
 };
 
-login(config).then(user => set(user));
+login(config).then(user => console.log(user));
 
 // or
 
-login(config).then(set);
+const user = await login(config);
+console.log(user);
 ```
+
+In the example above the `login` method requires an object which will be used for the `login` utility function.
