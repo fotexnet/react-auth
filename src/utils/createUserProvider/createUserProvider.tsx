@@ -1,19 +1,21 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import cookies from '../cookies/cookies';
+import login, { LoginConfig } from '../login/login';
 
-export interface IUser {
+export interface IUser extends Record<string, unknown> {
   id: number;
   email: string;
 }
 
 export type UserObject<TUser extends IUser = IUser> = {
   user: TUser | null;
-  set: (user: TUser) => void;
-  unset: () => void;
+  update: (user: TUser) => void;
+  login: (config: LoginConfig) => Promise<TUser>;
+  logout: () => void;
 };
 
 export type UserProviderConfig<TUser extends IUser = IUser> =
-  | { mode: 'storage'; storage: Storage | typeof document.cookie; key: string }
+  | { mode: 'storage'; storage: 'localStorage' | 'sessionStorage' | 'cookie'; key: string }
   | { mode: 'fetch'; useFetch: () => Promise<TUser> };
 
 export type UserProviderFactory<TUser extends IUser = IUser> = {
@@ -21,7 +23,6 @@ export type UserProviderFactory<TUser extends IUser = IUser> = {
   useUser: () => UserObject<TUser>;
 };
 
-// TODO: create useCookie hook
 function createUserProvider<TUser extends IUser = IUser>(
   config: UserProviderConfig<TUser>
 ): UserProviderFactory<TUser> {
@@ -32,8 +33,13 @@ function createUserProvider<TUser extends IUser = IUser>(
       <UserContext.Provider
         value={{
           user,
-          set: setUser,
-          unset: () => {
+          update: setUser,
+          login: async (config: LoginConfig) => {
+            const user = await login<TUser>(config);
+            setUser(user);
+            return user;
+          },
+          logout: () => {
             setUser(null);
             cookies.delete('authorization');
           },
@@ -66,7 +72,9 @@ function useInitialUser<TUser extends IUser = IUser>(
     switch (config.mode) {
       case 'storage':
         setUser(
-          parseInitialUser(isStorage(config.storage) ? config.storage.getItem(config.key) : cookies.get(config.key))
+          parseInitialUser(
+            config.storage === 'cookie' ? cookies.get(config.key) : window[config.storage].getItem(config.key)
+          )
         );
         break;
       case 'fetch':
@@ -78,8 +86,4 @@ function useInitialUser<TUser extends IUser = IUser>(
   }, []);
 
   return [user, setUser];
-}
-
-function isStorage(storage: unknown): storage is Storage {
-  return storage === window.localStorage || storage === window.sessionStorage;
 }
