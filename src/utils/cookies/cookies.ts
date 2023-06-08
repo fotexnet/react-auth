@@ -39,7 +39,7 @@ function setCookie(cname: string, cvalue: string, exdays: number): void {
 }
 
 function getCookie(cname: string): string {
-  const name = cname + '=';
+  const name = createCookieName(cname) + '=';
   const decodedCookie = decodeURIComponent(document.cookie);
   const cookie = decodedCookie.split(';');
   for (let i = 0; i < cookie.length; i++) {
