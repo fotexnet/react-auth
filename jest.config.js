@@ -1,5 +1,6 @@
+/** @type {import('jest').Config} */
 module.exports = {
-  testPathIgnorePatterns: ['./node_modules/', './templates/'],
+  testPathIgnorePatterns: ['<rootDir>/node_modules', '<rootDir>/templates'],
   moduleNameMapper: {
     axios: 'axios/dist/node/axios.cjs',
   },
