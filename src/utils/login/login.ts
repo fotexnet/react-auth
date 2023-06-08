@@ -1,6 +1,6 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import IResponse from '../../interfaces/IResponse';
-import { DatabaseRecord } from '../../interfaces/Record';
+import { DatabaseRecord, HttpClient } from '../../interfaces/Record';
 import cookies from '../cookies/cookies';
 
 type LocalProvider = 'local';
@@ -16,16 +16,10 @@ export type SocialCredentials = { social_token: string };
 
 export type Provider = LocalProvider | SocialProvider;
 
-export type LoginConfig = {
-  dataKey: string;
-  apiUrl: string;
-  httpClient?: AxiosInstance;
-  httpConfig?: Omit<AxiosRequestConfig, 'withCredentials'>;
-} & (
+export type LoginConfig = { dataKey: string; apiUrl: string } & LoginProvider & HttpClient;
+export type LoginProvider =
   | { provider: LocalProvider; credentials: LocalCredentials }
-  | { provider: SocialProvider; credentials: SocialCredentials }
-);
-
+  | { provider: SocialProvider; credentials: SocialCredentials };
 /**
  * Provides an easy way to get an access token for the `fotexnet` infrastructure.
  * Define the login endpoint via `apiUrl`, the `dataKey` which will be used to identify the user object
