@@ -2,20 +2,20 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import createUserProvider, { UserProviderFactory } from './createUserProvider';
 
-interface IUser {
+type User = {
   id: number;
   email: string;
-}
+};
 
 describe('createUserProvider', () => {
   describe('fetch mode', () => {
-    let factory: UserProviderFactory<IUser>;
+    let factory: UserProviderFactory<User>;
     let Component: React.FC;
-    const userData: IUser = { id: 1, email: 'test@test.com' };
+    const userData: User = { id: 1, email: 'test@test.com' };
 
     beforeEach(() => {
-      const mockFetch: jest.Mock<Promise<IUser>> = jest.fn();
-      factory = createUserProvider<IUser>({
+      const mockFetch: jest.Mock<Promise<User>> = jest.fn();
+      factory = createUserProvider<User>({
         mode: 'fetch',
         useFetch: mockFetch.mockImplementation(() => Promise.resolve(userData)),
       });
@@ -40,14 +40,14 @@ describe('createUserProvider', () => {
     it('updates the user', async () => {
       const updatedUser = { id: 1, email: 'dummy@test.com' };
       Component = () => {
-        const { user, set, unset } = factory.useUser();
+        const { user, update, logout } = factory.useUser();
         return (
           <div>
             <div data-testid="user">{JSON.stringify(user)}</div>
-            <button data-testid="login" onClick={() => set(updatedUser)}>
+            <button data-testid="login" onClick={() => update(updatedUser)}>
               Login
             </button>
-            <button data-testid="logout" onClick={() => unset()}>
+            <button data-testid="logout" onClick={() => logout()}>
               Logout
             </button>
           </div>
@@ -72,13 +72,13 @@ describe('createUserProvider', () => {
     });
   });
   describe('storage mode - cookie', () => {
-    let factory: UserProviderFactory<IUser>;
+    let factory: UserProviderFactory<User>;
     let Component: React.FC;
 
     beforeEach(() => {
-      factory = createUserProvider<IUser>({
+      factory = createUserProvider<User>({
         mode: 'storage',
-        storage: document.cookie,
+        storage: 'cookie',
         key: 'default',
       });
     });
@@ -101,14 +101,14 @@ describe('createUserProvider', () => {
 
     it('updates the user', () => {
       Component = () => {
-        const { user, set, unset } = factory.useUser();
+        const { user, update, logout } = factory.useUser();
         return (
           <div>
             <div data-testid="user">{JSON.stringify(user)}</div>
-            <button data-testid="login" onClick={() => set({ id: 1, email: 'dummy@test.com' })}>
+            <button data-testid="login" onClick={() => update({ id: 1, email: 'dummy@test.com' })}>
               Login
             </button>
-            <button data-testid="logout" onClick={() => unset()}>
+            <button data-testid="logout" onClick={() => logout()}>
               Logout
             </button>
           </div>
