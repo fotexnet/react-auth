@@ -8,13 +8,16 @@ function useImage(url: string, config?: UseImageConfig): string {
   useEffect(() => {
     const controller = new AbortController();
 
-    client.get(url, { ...config, responseType: 'blob', signal: controller.signal }).then(({ data }) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setDataUrl(typeof reader.result === 'string' ? reader.result : '');
-      };
-      reader.readAsDataURL(data);
-    });
+    client
+      .get(url, { ...config, responseType: 'blob', signal: controller.signal })
+      .then(({ data }) => {
+        const reader = new FileReader();
+        reader.addEventListener('loadend', () => setDataUrl(typeof reader.result === 'string' ? reader.result : ''));
+        reader.readAsDataURL(data);
+      })
+      .catch(() => {
+        setDataUrl('');
+      });
 
     return () => {
       controller.abort();
