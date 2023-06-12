@@ -23,11 +23,11 @@ describe('createUserProvider', () => {
     const userData: User = { id: 1, email: 'test@test.com' };
 
     beforeEach(() => {
-      const mockFetch: jest.Mock<Promise<User>> = jest.fn();
+      const mockFetch: jest.Mock<User> = jest.fn();
       factory = createUserProvider<User>({
         ...providerOptions,
         mode: 'fetch',
-        useFetch: mockFetch.mockImplementation(() => Promise.resolve(userData)),
+        useFetch: mockFetch.mockImplementation(() => userData),
       });
     });
 

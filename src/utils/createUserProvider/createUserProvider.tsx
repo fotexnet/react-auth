@@ -25,7 +25,7 @@ export type UserProviderConfig<TUser extends IUser = IUser> = {
 
 type UserProviderMode<TUser extends IUser = IUser> =
   | { mode: 'storage'; storage: 'localStorage' | 'sessionStorage' | 'cookie'; key: string }
-  | { mode: 'fetch'; useFetch: () => Promise<TUser> };
+  | { mode: 'fetch'; useFetch: (http: HttpClient) => TUser | null };
 
 export type UserProviderFactory<TUser extends IUser = IUser> = {
   UserProvider: React.FC<React.PropsWithChildren<unknown>>;
@@ -42,7 +42,7 @@ function createUserProvider<TUser extends IUser = IUser>({
 }: UserProviderConfig<TUser>): UserProviderFactory<TUser> {
   const UserContext = createContext<UserObject<TUser> | null>(null);
   const UserProvider: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => {
-    const [user, setUser] = useInitialUser<TUser>(config);
+    const [user, setUser] = useInitialUser<TUser>({ ...config, httpClient, httpConfig });
     return (
       <UserContext.Provider
         value={{
@@ -85,7 +85,7 @@ export default createUserProvider;
 
 // TODO: set user if mode set to storage (?)
 function useInitialUser<TUser extends IUser = IUser>(
-  config: UserProviderMode<TUser>
+  config: UserProviderMode<TUser> & HttpClient
 ): [TUser | null, React.Dispatch<React.SetStateAction<TUser | null>>] {
   const [user, setUser] = useState<TUser | null>(null);
 
@@ -100,7 +100,7 @@ function useInitialUser<TUser extends IUser = IUser>(
         );
         break;
       case 'fetch':
-        config.useFetch().then(setUser);
+        setUser(config.useFetch({ httpClient: config.httpClient, httpConfig: config.httpConfig }));
         break;
       default:
         break;
