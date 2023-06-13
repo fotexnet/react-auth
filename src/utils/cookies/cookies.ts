@@ -30,12 +30,13 @@ export function createCookieName(str: string): string {
   return name;
 }
 
-function setCookie(cname: string, cvalue: string, exdays: number): void {
+function setCookie(cname: string, cvalue: unknown, exdays: number): void {
   const date = new Date();
   const name = createCookieName(cname);
+  const value = JSON.stringify(cvalue);
   date.setTime(date.getTime() + exdays * 24 * 60 * 60 * 1000);
   const expires = 'expires=' + date.toISOString();
-  document.cookie = name + '=' + cvalue + ';' + expires + ';path=/';
+  document.cookie = name + '=' + value + ';' + expires + ';path=/';
 }
 
 function getCookie(cname: string): string {
