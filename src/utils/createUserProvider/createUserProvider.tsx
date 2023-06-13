@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { HttpClient } from '../../interfaces/Record';
 import cookies from '../cookies/cookies';
 import login, { LoginConfig, LoginProvider, Provider } from '../login/login';
@@ -104,25 +104,19 @@ function useConfig<TUser extends IUser = IUser>(config: UserProviderConfig<TUser
 function useInitialUser<TUser extends IUser = IUser>(
   config: UserProviderMode<TUser> & HttpClient
 ): [TUser | null, React.Dispatch<React.SetStateAction<TUser | null>>] {
-  const [user, setUser] = useState<TUser | null>(null);
-
-  useEffect(() => {
+  const getProfileFn = useCallback(() => {
     const parseInitialUser = (str?: string | null) => JSON.parse(str || 'null') as TUser | null;
-    switch (config.mode) {
-      case 'storage':
-        setUser(
-          parseInitialUser(
+    return config.mode === 'fetch'
+      ? config.useProfile
+      : (_: HttpClient) => {
+          return parseInitialUser(
             config.storage === 'cookie' ? cookies.get(config.key) : window[config.storage].getItem(config.key)
-          )
-        );
-        break;
-      case 'fetch':
-        setUser(config.useProfile({ httpClient: config.httpClient, httpConfig: config.httpConfig }));
-        break;
-      default:
-        break;
-    }
+          );
+        };
   }, []);
 
-  return [user, setUser];
+  const useProfile = getProfileFn();
+  const profile = useProfile({ httpClient: config.httpClient, httpConfig: config.httpConfig });
+
+  return useState<TUser | null>(profile);
 }
