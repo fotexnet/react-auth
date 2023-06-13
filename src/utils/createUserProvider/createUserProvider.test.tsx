@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import axios from 'axios';
 import React from 'react';
-import createUserProvider, { UserProviderFactory } from './createUserProvider';
+import createUserProvider, { UserProviderFactory, UserProviderUrls } from './createUserProvider';
 
 type User = {
   id: number;
@@ -11,10 +11,11 @@ type User = {
 jest.mock('axios');
 
 describe('createUserProvider', () => {
-  const providerOptions = {
+  const providerOptions: UserProviderUrls & { dataKey: string } = {
     dataKey: 'user',
     loginUrl: 'your_api_goes_here',
     logoutUrl: 'your_api_goes_here',
+    localOnly: true,
   };
 
   describe('fetch mode', () => {
@@ -27,7 +28,7 @@ describe('createUserProvider', () => {
       factory = createUserProvider<User>({
         ...providerOptions,
         mode: 'fetch',
-        useFetch: mockFetch.mockImplementation(() => userData),
+        useProfile: mockFetch.mockImplementation(() => userData),
       });
     });
 

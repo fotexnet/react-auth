@@ -4,6 +4,8 @@ export {
   default as createUserProvider,
   UserProviderConfig,
   UserProviderFactory,
+  UserProviderMode,
+  UserProviderUrls,
   UserObject,
   IUser,
 } from './createUserProvider/createUserProvider';
