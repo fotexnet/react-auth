@@ -9,11 +9,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Create .npmrc file
-        run: echo "//npm.pkg.github.com/:_authToken=\${{ secrets.NPM_AUTH_TOKEN }}" > .npmrc
       - uses: actions/setup-node@v2
         with:
           node-version: 18
+      - uses: jgierer12/npm-auth-gpr@v1.0.1
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
       - run: yarn install
       - run: yarn semantic-release
         env:
