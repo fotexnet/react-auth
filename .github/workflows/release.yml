@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Create .npmrc file
-        run: echo "//npm.pkg.github.com/:_authToken=\${{ secrets.NPM_AUTH_TOKEN }}" > .npmrc
+        run: echo "//npm.pkg.github.com/:_authToken=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" > .npmrc
       - uses: actions/setup-node@v2
         with:
           node-version: 18
