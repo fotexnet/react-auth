@@ -159,24 +159,28 @@ The `useUser` hook has 2 methods (`set` and `unset`), that are used to refresh t
 
 **Configuration object:**
 
-| parameter    | type                   | required | default | description                                                                   |
-| ------------ | ---------------------- | -------- | ------- | ----------------------------------------------------------------------------- |
-| `mode`       | `storage` or `fetch`   | Yes      | -       | -                                                                             |
-| `storage`    | `Storage` or `string`  | Yes      | -       | Only available when `mode` is set to `storage`. Used to set initial user data |
-| `key`        | `string`               | Yes      | -       | Only available when `mode` is set to `storage`. Storage key                   |
-| `useFetch`   | `() => Promise<TUser>` | Yes      | -       | Only available when `mode` is set to `fetch`. Used to set initial user data   |
-| `dataKey`    | `string`               | Yes      | -       | This key will be used to acces the user object on the response body           |
-| `loginUrl`   | `string`               | Yes      | -       | This `string` will be used for the `login` function                           |
-| `logoutUrl`  | `string`               | Yes      | -       | This `string` will be used for the `logout` function                          |
-| `httpClient` | `AxiosInstance`        | No       | `axios` | -                                                                             |
-| `httpConfig` | `AxiosRequestConfig`   | No       | -       | -                                                                             |
+| parameter    | type                                                 | required | default           | description                                                                                                                                 |
+| ------------ | ---------------------------------------------------- | -------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mode`       | `'storage'` or `'fetch'`                             | Yes      | -                 | This value determines where to load user data from when the page is loaded. `'storage'` means browser storage, `'fetch'` means http request |
+| `storage`    | `'localStorage'` or `'sessionStorage'` or `'cookie'` | No       | `'cookie'`        | Only available when `mode` is set to `storage`. Used to set initial user data                                                               |
+| `key`        | `string`                                             | Yes      | -                 | Only available when `mode` is set to `storage`. Storage key                                                                                 |
+| `useProfile` | `(http: HttpClient) => TUser, null`                  | Yes      | -                 | Only available when `mode` is set to `fetch`. Used to set initial user data                                                                 |
+| `dataKey`    | `string`                                             | Yes      | -                 | This key will be used to acces the user object on the response body                                                                         |
+| `authKey`    | `string`                                             | No       | `'authorization'` | This key will be used to acces the access token in the request/response headers                                                             |
+| `loginUrl`   | `string | { local: tring, social: string }`          | Yes      | -                 | This `string` will be used for the `login` function                                                                                         |
+| `logoutUrl`  | `string`                                             | Yes      | -                 | This `string` will be used for the `logout` function                                                                                        |
+| `localOnly`  | `boolean`                                            | No       | `false`           | This `boolean` will be used to determine the type of `loginUrl`                                                                             |
+| `httpClient` | `AxiosInstance`                                      | No       | `axios`           | -                                                                                                                                           |
+| `httpConfig` | `AxiosRequestConfig`                                 | No       | -                 | -                                                                                                                                           |
 
 ```jsx
 // does not matter where you create it
 const { UserProvider, useUser } = createUserProvider({
   dataKey: 'user',
-  loginUrl: 'your_api_goes_here',
-  logoutUrl: 'your_api_goes_here',
+  authKey: 'AuthToken',
+  loginUrl: 'your_api_endpoint',
+  logoutUrl: 'your_api_endpoint',
+  localOnly: true,
   mode: 'storage',
   storage: 'cookie',
   key: 'default',

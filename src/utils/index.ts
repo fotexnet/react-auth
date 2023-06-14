@@ -1,14 +1,14 @@
 export { default as cookies, createCookieName } from './cookies/cookies';
 export { default as createAuthGuard } from './createAuthGuard/createAuthGuard';
+export { default as createUserProvider } from './createUserProvider/createUserProvider';
 export {
-  default as createUserProvider,
+  IUser,
+  UserObject,
   UserProviderConfig,
   UserProviderFactory,
   UserProviderMode,
   UserProviderUrls,
-  UserObject,
-  IUser,
-} from './createUserProvider/createUserProvider';
+} from './createUserProvider/types';
 export {
   default as login,
   isLocalCredentials,

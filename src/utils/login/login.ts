@@ -16,7 +16,8 @@ export type SocialCredentials = { social_token: string };
 
 export type Provider = LocalProvider | SocialProvider;
 
-export type LoginConfig = { dataKey: string; apiUrl: string } & LoginProvider & HttpClient;
+export type LoginConfig = { apiUrl: string } & LoginKeys & LoginProvider & HttpClient;
+export type LoginKeys = { dataKey: string; authKey?: string };
 export type LoginProvider =
   | { provider: LocalProvider; credentials: LocalCredentials }
   | { provider: SocialProvider; credentials: SocialCredentials };
@@ -37,9 +38,12 @@ async function login<TRecord extends DatabaseRecord = DatabaseRecord>(config: Lo
     ...config.httpConfig,
     withCredentials: true,
   });
+
   const user = data.data[config.dataKey];
-  const token = headers.authorization?.split(' ')[1];
-  cookies.set('Authorization', token, 365 * 1000);
+  const authKey = config.authKey || 'authorization';
+  const token = headers[authKey]?.split(' ')[1] || null;
+  cookies.set(authKey, token, 365 * 1000);
+
   return { ...user, token };
 }
 

@@ -1,46 +1,21 @@
-import axios from 'axios';
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createHttpClient } from '@fotexnet/react-request';
+import React, { createContext, useContext } from 'react';
 import { HttpClient } from '../../interfaces/Record';
 import cookies from '../cookies/cookies';
-import login, { LoginConfig, LoginProvider, Provider } from '../login/login';
+import login, { LoginProvider } from '../login/login';
+import createInterceptors from './createInterceptors';
+import { IUser, UserProviderConfig, UserProviderFactory, UserObject } from './types';
+import { useConfig, useInitialUser } from './utils';
 
-export interface IUser extends Record<string, unknown> {
-  id: number;
-  email: string;
-}
-
-export type UserObject<TUser extends IUser = IUser> = {
-  user: TUser | null;
-  update: (user: TUser) => void;
-  login: (config: LoginProvider & HttpClient) => Promise<TUser>;
-  logout: (config?: HttpClient) => Promise<void>;
-};
-
-export type UserProviderConfig<TUser extends IUser = IUser> = UserProviderUrls &
-  UserProviderMode<TUser> &
-  Pick<LoginConfig, 'dataKey'> &
-  HttpClient;
-
-export type UserProviderUrls = { logoutUrl: string } & (
-  | { loginUrl: string; localOnly: true }
-  | { loginUrl: { local: string; social: string }; localOnly: false }
-);
-
-export type UserProviderMode<TUser extends IUser = IUser> =
-  | { mode: 'storage'; storage: 'localStorage' | 'sessionStorage' | 'cookie'; key: string }
-  | { mode: 'fetch'; useProfile: (http: HttpClient) => TUser | null };
-
-export type UserProviderFactory<TUser extends IUser = IUser> = {
-  UserProvider: React.FC<React.PropsWithChildren<unknown>>;
-  useUser: () => UserObject<TUser>;
-};
-
+// TODO: update user based on deps
 function createUserProvider<TUser extends IUser = IUser>(
   config: UserProviderConfig<TUser>
 ): UserProviderFactory<TUser> {
+  const interceptors = createInterceptors(config.authKey);
+  const { client } = createHttpClient({ ...interceptors });
   const UserContext = createContext<UserObject<TUser> | null>(null);
   const UserProvider: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => {
-    const { initialUserConfig, httpClientConfig, dataKey, extractUrl } = useConfig(config);
+    const { initialUserConfig, httpClientConfig, keys, extractUrl } = useConfig(config);
     const [user, setUser] = useInitialUser<TUser>({ ...initialUserConfig, ...httpClientConfig });
 
     return (
@@ -51,19 +26,19 @@ function createUserProvider<TUser extends IUser = IUser>(
           login: async ({ httpClient: hClient, httpConfig: hConfig, ...provider }: LoginProvider & HttpClient) => {
             const apiUrl: string = extractUrl(provider.provider);
             const httpObj: HttpClient = {
-              httpClient: hClient || httpClientConfig.httpClient,
+              httpClient: hClient || httpClientConfig.httpClient || client,
               httpConfig: hConfig || httpClientConfig.httpConfig,
             };
-            const user = await login<TUser>({ ...provider, ...httpObj, apiUrl, dataKey });
+            const user = await login<TUser>({ ...provider, ...keys, ...httpObj, apiUrl });
             setUser(user);
             return user;
           },
           logout: async (http?: HttpClient) => {
-            const httpClient = http?.httpClient || httpClientConfig.httpClient || axios;
+            const httpClient = http?.httpClient || httpClientConfig.httpClient || client;
             const httpConfig = http?.httpConfig || httpClientConfig.httpConfig;
-            await httpClient.post(config.logoutUrl, undefined, { ...httpConfig, withCredentials: true });
+            await httpClient.post(config.logoutUrl, undefined, { ...httpConfig });
             setUser(null);
-            cookies.delete('authorization');
+            cookies.delete(keys.authKey);
           },
         }}
       >
@@ -78,45 +53,11 @@ function createUserProvider<TUser extends IUser = IUser>(
     return context;
   };
 
-  return { UserProvider, useUser };
+  return {
+    UserProvider,
+    useUser,
+    meta: { interceptors },
+  };
 }
 
 export default createUserProvider;
-
-function useConfig<TUser extends IUser = IUser>(config: UserProviderConfig<TUser>) {
-  const dataKey = useMemo(() => config.dataKey, []);
-  const initialUserConfig: UserProviderMode<TUser> = useMemo(() => {
-    return config.mode === 'fetch'
-      ? { mode: config.mode, useProfile: config.useProfile }
-      : { mode: config.mode, storage: config.storage, key: config.key };
-  }, []);
-  const httpClientConfig: HttpClient = useMemo(() => {
-    return { httpClient: config.httpClient, httpConfig: config.httpConfig };
-  }, []);
-  const extractUrl = useCallback((provider: Provider) => {
-    return config.localOnly ? config.loginUrl : provider === 'local' ? config.loginUrl.local : config.loginUrl.social;
-  }, []);
-
-  return { dataKey, initialUserConfig, httpClientConfig, extractUrl };
-}
-
-// TODO: set user if mode set to storage (?)
-function useInitialUser<TUser extends IUser = IUser>(
-  config: UserProviderMode<TUser> & HttpClient
-): [TUser | null, React.Dispatch<React.SetStateAction<TUser | null>>] {
-  const getProfileFn = useCallback(() => {
-    const parseInitialUser = (str?: string | null) => JSON.parse(str || 'null') as TUser | null;
-    return config.mode === 'fetch'
-      ? config.useProfile
-      : (_: HttpClient) => {
-          return parseInitialUser(
-            config.storage === 'cookie' ? cookies.get(config.key) : window[config.storage].getItem(config.key)
-          );
-        };
-  }, []);
-
-  const useProfile = getProfileFn();
-  const profile = useProfile({ httpClient: config.httpClient, httpConfig: config.httpConfig });
-
-  return useState<TUser | null>(profile);
-}
