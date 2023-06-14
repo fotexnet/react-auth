@@ -12,9 +12,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 18
-      - uses: jgierer12/npm-auth-gpr@v1.0.1
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
+      - run: npx npm-auth-to-token -u kmpizmad -p ${{ secrets.NPM_TOKEN }} -r https://npm.pkg.github.com
       - run: yarn install
       - run: yarn semantic-release
         env:
