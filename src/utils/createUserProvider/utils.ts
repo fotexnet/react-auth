@@ -39,11 +39,8 @@ export function useInitialUser<TUser extends IUser = IUser>(
 
   useEffect(() => {
     if (config.mode === 'fetch') return;
-    setUser(
-      parseInitialUser(
-        config.storage === 'cookie' ? cookies.get(config.key) : window[config.storage].getItem(config.key)
-      )
-    );
+    const storage = config.storage || 'cookie';
+    setUser(parseInitialUser(storage === 'cookie' ? cookies.get(config.key) : window[storage].getItem(config.key)));
   }, []);
 
   return [user, setUser];

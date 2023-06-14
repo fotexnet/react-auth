@@ -25,7 +25,7 @@ export type UserProviderUrls = { logoutUrl: string } & (
 );
 
 export type UserProviderMode<TUser extends IUser = IUser> =
-  | { mode: 'storage'; storage: 'localStorage' | 'sessionStorage' | 'cookie'; key: string }
+  | { mode: 'storage'; key: string; storage?: 'localStorage' | 'sessionStorage' | 'cookie' }
   | { mode: 'fetch'; useProfile: (http: HttpClient) => TUser | null };
 
 export type UserProviderFactory<TUser extends IUser = IUser> = {
