@@ -11,11 +11,13 @@ jobs:
       - uses: actions/checkout@v2
       - name: Create .npmrc file
         run: echo "//npm.pkg.github.com/:_authToken=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" > .npmrc
+      - name: Debugging .npmrc
+        run: cat .npmrc
       - uses: actions/setup-node@v2
         with:
           node-version: 18
       - run: yarn install
       - run: yarn semantic-release
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
