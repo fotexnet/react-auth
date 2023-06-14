@@ -12,7 +12,9 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 18
-      - run: npx npm-auth-to-token -e nagy.viktor392@gmail.com -u kmpizmad -p ${{ secrets.NPM_TOKEN }} -r https://npm.pkg.github.com
+      - env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: echo "//npm.pkg.github.com/:_authToken=\${NPM_TOKEN}" >> ~/.npmrc
       - run: yarn install
       - run: yarn semantic-release
         env:
