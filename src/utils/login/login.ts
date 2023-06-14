@@ -7,7 +7,6 @@ type LocalProvider = 'local';
 type SocialProvider = 'google' | 'facebook';
 type SocialPayload = SocialCredentials & { social_provider: string };
 type AuthResponse<TUser extends DatabaseRecord> = IResponse<{ [x: string]: TUser }>;
-type LoginKeys = { dataKey: string; authKey?: string };
 
 export type User<TProps extends DatabaseRecord> = { token: string } & TProps;
 
@@ -18,6 +17,7 @@ export type SocialCredentials = { social_token: string };
 export type Provider = LocalProvider | SocialProvider;
 
 export type LoginConfig = { apiUrl: string } & LoginKeys & LoginProvider & HttpClient;
+export type LoginKeys = { dataKey: string; authKey?: string };
 export type LoginProvider =
   | { provider: LocalProvider; credentials: LocalCredentials }
   | { provider: SocialProvider; credentials: SocialCredentials };
@@ -56,6 +56,3 @@ export function isLocalCredentials(credentials: Credentials): credentials is Loc
 export function isSocialCredentials(credentials: Credentials): credentials is SocialCredentials {
   return credentials.hasOwnProperty('social_token');
 }
-
-// TODO: integrate react-request (createHttpClient)
-// TODO: create interceptor that updates token
