@@ -36,7 +36,7 @@ function createUserProvider<TUser extends IUser = IUser>(
           logout: async (http?: HttpClient) => {
             const httpClient = http?.httpClient || httpClientConfig.httpClient || client;
             const httpConfig = http?.httpConfig || httpClientConfig.httpConfig;
-            await httpClient.post(config.logoutUrl, undefined, { ...httpConfig });
+            await httpClient.post(config.logoutUrl, undefined, httpConfig);
             setUser(null);
             cookies.delete(keys.authKey);
           },
