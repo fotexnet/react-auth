@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import IResponse from '../../interfaces/IResponse';
 import { DatabaseRecord, HttpClient } from '../../interfaces/Record';
 import cookies from '../cookies/cookies';
@@ -34,14 +34,13 @@ async function login<TRecord extends DatabaseRecord = DatabaseRecord>(config: Lo
   const payload: LocalCredentials | SocialPayload =
     config.provider === 'local' ? config.credentials : { ...config.credentials, social_provider: config.provider };
 
-  const { data, headers } = await client.post<AuthResponse<TRecord>>(config.apiUrl, payload, {
-    ...config.httpConfig,
-    withCredentials: true,
-  });
+  const conf = { ...config.httpConfig, withCredentials: true } as AxiosRequestConfig<unknown>;
+  const response = await client.post<AuthResponse<TRecord>>(config.apiUrl, payload, conf);
+  const res = response as AxiosResponse<AuthResponse<TRecord>, unknown>;
 
-  const user = data.data[config.dataKey];
+  const user = res.data.data[config.dataKey];
   const authKey = config.authKey || 'authorization';
-  const token = headers[authKey]?.split(' ')[1] || null;
+  const token = res.headers[authKey]?.split(' ')[1] || null;
   cookies.set(authKey, token, 365 * 1000);
 
   return { ...user, token };

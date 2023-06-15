@@ -6,18 +6,28 @@ function useImage(url: string, config?: UseImageConfig): string {
   const client = useMemo(() => config?.httpClient || axios, [config?.httpClient]);
 
   useEffect(() => {
+    const extractConfig = () => {
+      let conf = {} as AxiosRequestConfig<unknown>;
+      if (config) {
+        const { httpClient: _, ...rest } = config;
+        conf = rest;
+      }
+      return conf;
+    };
+
     const controller = new AbortController();
+    const conf: AxiosRequestConfig<unknown> = extractConfig();
+    conf.responseType = 'blob';
+    conf.signal = controller.signal;
 
     client
-      .get(url, { ...config, responseType: 'blob', signal: controller.signal })
+      .get(url, conf)
       .then(({ data }) => {
         const reader = new FileReader();
         reader.addEventListener('loadend', () => setDataUrl(typeof reader.result === 'string' ? reader.result : ''));
         reader.readAsDataURL(data);
       })
-      .catch(() => {
-        setDataUrl('');
-      });
+      .catch(() => setDataUrl(''));
 
     return () => {
       controller.abort();
