@@ -12,8 +12,10 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 18
-      - run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
-      - run: yarn install
+      - name: Set npm registry
+        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
+      - name: Install deps and build (with cache)
+        run: yarn install
       - run: yarn semantic-release
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
