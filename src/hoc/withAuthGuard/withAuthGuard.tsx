@@ -1,9 +1,10 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import React, { useCallback, useEffect, useState } from 'react';
+import cookies from '../../utils/cookies/cookies';
 
 export type AuthGuardConfig = {
   url: string;
-  createAuthHeader: () => [string, string];
+  authKey?: string;
   httpClient?: AxiosInstance;
   httpConfig?: AxiosRequestConfig;
   LoadingIndicatorComponent?: React.ComponentType;
@@ -20,14 +21,15 @@ function withAuthGuard<T extends object>(Component: React.ComponentType<T>, conf
 
     useEffect(() => {
       const controller = new AbortController();
-      const [name, token] = config.createAuthHeader();
+      const name = config.authKey || 'authorization';
+      const conf = (config.httpConfig || {}) as AxiosRequestConfig<unknown>;
+
+      if (conf.headers) conf.headers[name] = cookies.get(name);
+      else conf.headers = { [name]: cookies.get(name) };
+      conf.signal = controller.signal;
 
       client
-        .get(config.url, {
-          ...config.httpConfig,
-          headers: { ...config.httpConfig?.headers, [name]: token },
-          signal: controller.signal,
-        })
+        .get(config.url, conf)
         .then(response => setStatus(response.status))
         .catch(err => {
           setStatus(err.response?.status || 500);

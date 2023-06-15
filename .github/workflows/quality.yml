@@ -17,20 +17,17 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
-
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
-
+      - name: Set npm registry
+        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
       - name: Install deps and build (with cache)
         run: yarn install
-
       - name: Lint
         run: yarn lint
-
       - name: Test
         run: yarn test --ci --coverage --maxWorkers=2
-
       - name: Build
         run: yarn build
