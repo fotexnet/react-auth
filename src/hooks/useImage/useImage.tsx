@@ -32,7 +32,7 @@ function useImage(url: string, config?: UseImageConfig): string {
     return () => {
       controller.abort();
     };
-  }, []);
+  }, [url]);
 
   return dataUrl;
 }
