@@ -10,11 +10,15 @@
     - [useImage](#useimage)
     - [useCookie](#usecookie)
   - [Utils](#utils)
+    - [cookies](#cookies)
     - [login](#login)
     - [isLocalCredentials](#islocalcredentials)
     - [isSocialCredentials](#issocialcredentials)
     - [createAuthGuard](#createauthguard)
     - [createUserProvider](#createuserprovider)
+- [For contributors and maintainers](#for-contributors-and-maintainers)
+  - [How to contribute](#how-to-contribute)
+  - [How to release a new version](#how-to-release-a-new-version)
 
 # Prerequisites
 
@@ -36,39 +40,64 @@
 ### withAuthGuard
 
 Provides protection for any component. Convenient way to use it is to wrap the target component when exporting it.
+It requires an `AuthGuardConfig` object which requires a `url`.
 
 ```jsx
-export default withAuthGuard(Component, { url: 'YOUR_API', createAuthHeader: () => ['header_name', 'token_value'] });
+export default withAuthGuard(Component, { url: 'API_URL' });
 ```
 
-It requires an `AuthGuardConfig` object which requires an `url` and a `createAuthHeader` function.
-
-| parameter                   | type                     | required | default           | description                                                                                                                       |
-| --------------------------- | ------------------------ | -------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `url`                       | `string`                 | Yes      | -                 | An http `GET` request will be sent to this `url` with the required authorization headers to check that the user's token is active |
-| `createAuthHeader`          | `() => [string, string]` | Yes      | -                 | Returns a tuple where the first element is the name of the header and the second element is the token                             |
-| `httpClient`                | `AxiosInstance`          | No       | `axios`           | -                                                                                                                                 |
-| `httpConfig`                | `AxiosRequestConfig`     | No       | -                 | -                                                                                                                                 |
-| `LoadingIndicatorComponent` | `React.ComponentType`    | No       | `FallbackLoading` | While the request is pending, this component will be shown                                                                        |
-| `UnauthorizedComponent`     | `React.ComponentType`    | No       | `Fallback401`     | If the token check returns `401`, this component will be shown                                                                    |
-| `InternalErrorComponent`    | `React.ComponentType`    | No       | `Fallback500`     | If the token check fails for some other reason and the server returns `500`, this component will be shown                         |
-
-**Defaults**
-
-```jsx
-// LoadingIndicatorComponent
-const FallbackLoading = () => <div data-testid="loading">Loading...</div>;
+```ts
+type AuthGuardConfig = {
+  url: string;
+  authKey?: string;
+  httpClient?: AxiosInstance;
+  httpConfig?: AxiosRequestConfig;
+  LoadingIndicatorComponent?: React.ComponentType;
+  UnauthorizedComponent?: React.ComponentType;
+  InternalErrorComponent?: React.ComponentType;
+};
 ```
 
-```jsx
-// UnauthorizedComponent
-const Fallback401 = () => <div data-testid="auth-error-401">401</div>;
-```
+**url `string`**
+_Required_
 
-```jsx
-// InternalErrorComponent
-const Fallback500 = () => <div data-testid="auth-error-500">500</div>;
-```
+The endpoint which will be used for the request.
+
+**authKey `string`**
+_Optional_
+_Default: `authorization`_
+
+This is the name of the header that should be send along with the request. Only works if it's set in the cookies.
+
+**httpClient `AxiosInstance`**
+_Optional_
+_Default: `axios`_
+
+Custom http client to be used instead of `axios.default`.
+
+**httpConfig `AxiosRequestConfig`**
+_Optional_
+_Default: `undefined`_
+
+Additional config for the http client. Can be used for the default client.
+
+**LoadingIndicatorComponent `React.ComponentType`**
+_Optional_
+_Default: Simple, internal loading component_
+
+While the request is pending, this component will be shown.
+
+**UnauthorizedComponent `React.ComponentType`**
+_Optional_
+_Default: Simple, internal loading component_
+
+If the token check returns `401`, this component will be shown.
+
+**InternalErrorComponent `React.ComponentType`**
+_Optional_
+_Default: Simple, internal loading component_
+
+If the token check fails for some other reason and the server returns `500`, this component will be shown.
 
 ## Hooks
 
@@ -106,6 +135,8 @@ function Component() {
 ```
 
 ## Utils
+
+### cookies
 
 ### login
 
@@ -225,3 +256,25 @@ console.log(user);
 ```
 
 In the example above the `login` method requires an object which will be used for the `login` utility function.
+
+# For contributors and maintainers
+
+## How to contribute
+
+1. Create an issue about the changes you'd like to see (use the pre-made templates for features and bugs)
+2. Clone the repository on your local machine (`git pull` if you already cloned it)
+3. Create a new branch locally (`feature/branch-name` or `bugfix/branch-name`) from `main`
+4. Make changes
+5. Commit your changes using `git commit`, then choose the appropriate field (this is important for ci)
+6. Follow the CLI instructions
+7. Push and create a PR
+8. Wait for tests to pass
+9. Merge into main
+
+## How to release a new version
+
+1. Go to `GitHub Actions`
+2. Choose `Release` action on the left
+3. Click on `Run workflow` that's located in the top right of the previous actions table
+
+_**Note:** For this to work, it's very important to follow the [How to contribute](#how-to-contribute) section._
