@@ -174,18 +174,75 @@ Provides an easy way to get an access token for the `fotexnet` infrastructure.
 Define the login endpoint via `apiUrl`, the `dataKey` which will be used to identify the user object
 and a `provider` method as well as the associated `credentials` info.
 
-**Configuration object**
+```ts
+type LoginConfig = {
+  apiUrl: string;
+  dataKey: string;
+  authKey?: string;
+  provider: Provider;
+  credentials: Credentials;
+  httpClient?: AxiosInstance;
+  httpConfig?: Omit<AxiosRequestConfig, 'withCredentials'>;
+};
+```
 
-| parameter     | type                 | required | default | description                                                         |
-| ------------- | -------------------- | -------- | ------- | ------------------------------------------------------------------- |
-| `dataKey`     | `string`             | Yes      | -       | This key will be used to acces the user object on the response body |
-| `apiUrl`      | `string`             | Yes      | -       | Full url of the login endpoint                                      |
-| `provider`    | `Provider`           | Yes      | -       | Authentication provider                                             |
-| `credentials` | `Credentials`        | Yes      | -       | Authentication info                                                 |
-| `httpClient`  | `AxiosInstance`      | No       | `axios` | -                                                                   |
-| `httpConfig`  | `AxiosRequestConfig` | No       | -       | -                                                                   |
+**apiUrl `string`**
+_Required_
 
-**Supported providers:** `'local' | 'google' | 'facebook'`
+Endpoint which will be used for the request.
+
+**dataKey `string`**
+_Required_
+
+Name of the field that comes back in the response's `data` object.
+
+```json
+// { dataKey: 'user' }
+{
+  "http_status_code": 200,
+  "status": true,
+  "message": "USERS_LOGIN",
+  "data": {
+    "user": {
+      "id": 36,
+      "name": "Gipsz Jakab",
+      "email": "gipsz.jakab@test.com",
+      "is_admin": true,
+      "enabled": true,
+      "lastlogin_at": "2019-03-26 09:20:42"
+    }
+  },
+  "errors": []
+}
+```
+
+**provider `Provider`**
+_Required_
+
+Name of the provider. Possible values are `'local' | 'google' | 'facebook'`.
+
+**credentials `Credentials`**
+_Required_
+
+It's an `object` which depends on the `provider` field. If it's set to `'local'`, this `object` will require an `email` and `password` field. If it's set to any social provider available, it will require a `social_token` which comes from the social login response.
+
+**authKey `string`**
+_Optional_
+_Default: `authorization`_
+
+This is the name of the header that should be send along with the request. Only works if it's set in the cookies.
+
+**httpClient `AxiosInstance`**
+_Optional_
+_Default: `axios`_
+
+Custom http client to be used instead of `axios.default`.
+
+**httpConfig `AxiosRequestConfig`**
+_Optional_
+_Default: `undefined`_
+
+Additional config for the http client. Can be used for the default client.
 
 ### isLocalCredentials
 
