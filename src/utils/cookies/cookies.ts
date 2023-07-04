@@ -1,3 +1,10 @@
+export function parseCookie<T>(value: string): T | null {
+  const isBoolean = value === 'true' || value === 'false';
+  const isNumber = !!value && !isNaN(+value);
+  const isObject = (value.startsWith('{') && value.endsWith('}')) || (value.startsWith('[') && value.endsWith(']'));
+  return isBoolean || isNumber || isObject ? JSON.parse(value) : !!value ? value : null;
+}
+
 export function createCookieName(str: string): string {
   const delimiter = '_';
   const trimmedStr = str.trim();
@@ -33,7 +40,7 @@ export function createCookieName(str: string): string {
 function setCookie(cname: string, cvalue: unknown, exdays: number): void {
   const date = new Date();
   const name = createCookieName(cname);
-  const value = JSON.stringify(cvalue);
+  const value = typeof cvalue === 'string' ? cvalue : JSON.stringify(cvalue);
   date.setTime(date.getTime() + exdays * 24 * 60 * 60 * 1000);
   const expires = 'expires=' + date.toISOString();
   document.cookie = name + '=' + value + ';' + expires + ';path=/';

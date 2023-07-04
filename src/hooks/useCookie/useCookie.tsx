@@ -1,20 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { cookies } from '../../utils';
+import { parseCookie } from '../../utils/cookies/cookies';
 
 function useCookie<T = unknown>(cname: string): UseCookie<T> {
   const [cookie, setCookie] = useState<T | null>(null);
 
-  const parseCookie = useCallback((value: string): T | null => {
-    const isBoolean = value === 'true' || value === 'false';
-    const isNumber = !!value && !isNaN(+value);
-    const isObject = (value.startsWith('{') && value.endsWith('}')) || (value.startsWith('[') && value.endsWith(']'));
-    return isBoolean || isNumber || isObject ? JSON.parse(value) : !!value ? value : null;
-  }, []);
-
   const set = useCallback(
     (value: string, exdays: number = 1) => {
       cookies.set(cname, value, exdays);
-      const parsedCookie = parseCookie(value);
+      const parsedCookie = parseCookie<T>(value);
       setCookie(parsedCookie);
     },
     [cname]
@@ -27,7 +21,7 @@ function useCookie<T = unknown>(cname: string): UseCookie<T> {
 
   useEffect(() => {
     const value = cookies.get(cname);
-    const parsedCookie = parseCookie(value);
+    const parsedCookie = parseCookie<T>(value);
     setCookie(parsedCookie);
   }, []);
 
