@@ -1,7 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import axios from 'axios';
 import React from 'react';
-import createUserProvider, { UserProviderFactory, UserProviderUrls } from './createUserProvider';
+import createUserProvider from './createUserProvider';
+import { UserProviderUrls, UserProviderFactory } from './types';
 
 type User = {
   id: number;
