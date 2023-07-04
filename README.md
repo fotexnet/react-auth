@@ -7,16 +7,17 @@
   - [Wrappers](#wrappers)
     - [withAuthGuard](#withauthguard)
   - [Hooks](#hooks)
-    - [useImage](#useimage)
     - [useCookie](#usecookie)
+    - [useImage](#useimage)
   - [Utils](#utils)
-    - [cookies](#cookies)
+    - [cookies `object`](#cookies-object)
+    - [createCookieName](#createcookiename)
     - [login](#login)
     - [isLocalCredentials](#islocalcredentials)
     - [isSocialCredentials](#issocialcredentials)
     - [createAuthGuard](#createauthguard)
     - [createUserProvider](#createuserprovider)
-- [For contributors and maintainers](#for-contributors-and-maintainers)
+- [For developers](#for-developers)
   - [How to contribute](#how-to-contribute)
   - [How to release a new version](#how-to-release-a-new-version)
 
@@ -101,20 +102,9 @@ If the token check fails for some other reason and the server returns `500`, thi
 
 ## Hooks
 
-### useImage
-
-Provides an easy way to convert an image file into `base64` string. Returns the data url. The API allows you to pass a configuration object where you can modify the request.
-
-```jsx
-function Component() {
-  const imageUrl = useImage('path_to_image');
-  return <img src={imageUrl} />;
-}
-```
-
 ### useCookie
 
-Provides an easy way to use the `cookies` object in a more reactive way. Operates on individual cookies.
+Provides an easy way to use the `cookies` object in a more React way. Operates on individual cookies.
 
 ```jsx
 function Component() {
@@ -134,9 +124,49 @@ function Component() {
 }
 ```
 
+### useImage
+
+Provides an easy way to convert an image file into `base64` string. Returns the data url. The API allows you to pass a configuration object where you can modify the request.
+
+```jsx
+function Component() {
+  const imageUrl = useImage('path_to_image');
+  return <img src={imageUrl} />;
+}
+```
+
 ## Utils
 
-### cookies
+### cookies `object`
+
+**get `(cname: string) => string`**
+_cname: cookie name in camelCase (works best)_
+_Returns: parsed cookie value if exists_
+
+Searches the `document.cookie` string for the given `cname` and returns it's value if found, empty string otherwise.
+
+**set `(cname: string, cvalue: any, exdays: number) => void`**
+_cname: cookie name in camelCase (works best)_
+_cvalue: anything you want to assign as value_
+_exdays: expiration date in days_
+
+Sets a new key-value pair in the `document.cookie` string.
+
+**delete `(cname: string) => void`**
+_cname: cookie name in camelCase (works best)_
+
+Deletes cookie from `document.cookie` string by resetting it's expiration day to `Thu, 01 Jan 1970 00:00:00 UTC`. This works even if the cookie did NOT exist before.
+
+### createCookieName
+
+_Signature: (str: string) => string_
+
+Transforms given string into `lower_snake_case`. Works as if the input is in `camelCase`.
+
+```js
+const myCookie = createCookieName('myCookie'); // my_cookie
+const abc = createCookieName('ABC'); // a_b_c
+```
 
 ### login
 
@@ -257,7 +287,7 @@ console.log(user);
 
 In the example above the `login` method requires an object which will be used for the `login` utility function.
 
-# For contributors and maintainers
+# For developers
 
 ## How to contribute
 
