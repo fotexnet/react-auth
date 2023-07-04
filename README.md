@@ -17,6 +17,9 @@
     - [isSocialCredentials](#issocialcredentials)
     - [createAuthGuard](#createauthguard)
     - [createUserProvider](#createuserprovider)
+- [Types](#types)
+  - [LoginKeys](#loginkeys)
+  - [HttpClient](#httpclient)
 - [For developers](#for-developers)
   - [How to contribute](#how-to-contribute)
   - [How to release a new version](#how-to-release-a-new-version)
@@ -50,53 +53,33 @@ export default withAuthGuard(Component, { url: 'API_URL' });
 ```ts
 type AuthGuardConfig = {
   url: string;
-  authKey?: string;
-  httpClient?: AxiosInstance;
-  httpConfig?: AxiosRequestConfig;
   LoadingIndicatorComponent?: React.ComponentType;
   UnauthorizedComponent?: React.ComponentType;
   InternalErrorComponent?: React.ComponentType;
-};
+} & Pick<LoginKeys, 'authKey'> &
+  HttpClient;
 ```
 
-**url `string`**
+**url `string`** <br />
 _Required_
 
 The endpoint which will be used for the request.
 
-**authKey `string`**
-_Optional_
-_Default: `authorization`_
-
-This is the name of the header that should be send along with the request. Only works if it's set in the cookies.
-
-**httpClient `AxiosInstance`**
-_Optional_
-_Default: `axios`_
-
-Custom http client to be used instead of `axios.default`.
-
-**httpConfig `AxiosRequestConfig`**
-_Optional_
-_Default: `undefined`_
-
-Additional config for the http client. Can be used for the default client.
-
-**LoadingIndicatorComponent `React.ComponentType`**
-_Optional_
+**LoadingIndicatorComponent `React.ComponentType`** <br />
+_Optional_ <br />
 _Default: Simple, internal loading component_
 
 While the request is pending, this component will be shown.
 
-**UnauthorizedComponent `React.ComponentType`**
-_Optional_
-_Default: Simple, internal loading component_
+**UnauthorizedComponent `React.ComponentType`** <br />
+_Optional_ <br />
+_Default: Simple, internal unauthorized component_
 
 If the token check returns `401`, this component will be shown.
 
-**InternalErrorComponent `React.ComponentType`**
-_Optional_
-_Default: Simple, internal loading component_
+**InternalErrorComponent `React.ComponentType`** <br />
+_Optional_ <br />
+_Default: Simple, internal error component_
 
 If the token check fails for some other reason and the server returns `500`, this component will be shown.
 
@@ -139,20 +122,20 @@ function Component() {
 
 ### cookies `object`
 
-**get `(cname: string) => string`**
-_cname: cookie name in camelCase (works best)_
+**get `(cname: string) => string`** <br />
+_cname: cookie name in camelCase (works best)_ <br />
 _Returns: parsed cookie value if exists_
 
 Searches the `document.cookie` string for the given `cname` and returns it's value if found, empty string otherwise.
 
-**set `(cname: string, cvalue: any, exdays: number) => void`**
-_cname: cookie name in camelCase (works best)_
-_cvalue: anything you want to assign as value_
+**set `(cname: string, cvalue: any, exdays: number) => void`** <br />
+_cname: cookie name in camelCase (works best)_ <br />
+_cvalue: anything you want to assign as value_ <br />
 _exdays: expiration date in days_
 
 Sets a new key-value pair in the `document.cookie` string.
 
-**delete `(cname: string) => void`**
+**delete `(cname: string) => void`** <br />
 _cname: cookie name in camelCase (works best)_
 
 Deletes cookie from `document.cookie` string by resetting it's expiration day to `Thu, 01 Jan 1970 00:00:00 UTC`. This works even if the cookie did NOT exist before.
@@ -177,72 +160,26 @@ and a `provider` method as well as the associated `credentials` info.
 ```ts
 type LoginConfig = {
   apiUrl: string;
-  dataKey: string;
-  authKey?: string;
   provider: Provider;
   credentials: Credentials;
-  httpClient?: AxiosInstance;
-  httpConfig?: Omit<AxiosRequestConfig, 'withCredentials'>;
-};
+} & LoginKeys &
+  HttpClient;
 ```
 
-**apiUrl `string`**
+**apiUrl `string`** <br />
 _Required_
 
 Endpoint which will be used for the request.
 
-**dataKey `string`**
-_Required_
-
-Name of the field that comes back in the response's `data` object.
-
-```json
-// { dataKey: 'user' }
-{
-  "http_status_code": 200,
-  "status": true,
-  "message": "USERS_LOGIN",
-  "data": {
-    "user": {
-      "id": 36,
-      "name": "Gipsz Jakab",
-      "email": "gipsz.jakab@test.com",
-      "is_admin": true,
-      "enabled": true,
-      "lastlogin_at": "2019-03-26 09:20:42"
-    }
-  },
-  "errors": []
-}
-```
-
-**provider `Provider`**
+**provider `Provider`** <br />
 _Required_
 
 Name of the provider. Possible values are `'local' | 'google' | 'facebook'`.
 
-**credentials `Credentials`**
+**credentials `Credentials`** <br />
 _Required_
 
 It's an `object` which depends on the `provider` field. If it's set to `'local'`, this `object` will require an `email` and `password` field. If it's set to any social provider available, it will require a `social_token` which comes from the social login response.
-
-**authKey `string`**
-_Optional_
-_Default: `authorization`_
-
-This is the name of the header that should be send along with the request. Only works if it's set in the cookies.
-
-**httpClient `AxiosInstance`**
-_Optional_
-_Default: `axios`_
-
-Custom http client to be used instead of `axios.default`.
-
-**httpConfig `AxiosRequestConfig`**
-_Optional_
-_Default: `undefined`_
-
-Additional config for the http client. Can be used for the default client.
 
 ### isLocalCredentials
 
@@ -275,21 +212,61 @@ Returns a higher-order component that calls the `[withAuthGuard](#withauthguard)
 Provides an easy way to share user data throughout the application. Returns a `UserProvider` wrapper, which you can use to wrap your app, and a `useUser` hook to track user data.
 The `useUser` hook has 2 methods (`set` and `unset`), that are used to refresh the UI, as well as the `user` object.
 
-**Configuration object:**
+```ts
+interface IUser extends Record<string, unknown> {
+  id: number;
+  email: string;
+}
 
-| parameter    | type                                                 | required | default           | description                                                                                                                                 |
-| ------------ | ---------------------------------------------------- | -------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mode`       | `'storage'` or `'fetch'`                             | Yes      | -                 | This value determines where to load user data from when the page is loaded. `'storage'` means browser storage, `'fetch'` means http request |
-| `storage`    | `'localStorage'` or `'sessionStorage'` or `'cookie'` | No       | `'cookie'`        | Only available when `mode` is set to `storage`. Used to set initial user data                                                               |
-| `key`        | `string`                                             | Yes      | -                 | Only available when `mode` is set to `storage`. Storage key                                                                                 |
-| `useProfile` | `(http: HttpClient) => TUser, null`                  | Yes      | -                 | Only available when `mode` is set to `fetch`. Used to set initial user data                                                                 |
-| `dataKey`    | `string`                                             | Yes      | -                 | This key will be used to acces the user object on the response body                                                                         |
-| `authKey`    | `string`                                             | No       | `'authorization'` | This key will be used to acces the access token in the request/response headers                                                             |
-| `loginUrl`   | `string | { local: tring, social: string }`          | Yes      | -                 | This `string` will be used for the `login` function                                                                                         |
-| `logoutUrl`  | `string`                                             | Yes      | -                 | This `string` will be used for the `logout` function                                                                                        |
-| `localOnly`  | `boolean`                                            | No       | `false`           | This `boolean` will be used to determine the type of `loginUrl`                                                                             |
-| `httpClient` | `AxiosInstance`                                      | No       | `axios`           | -                                                                                                                                           |
-| `httpConfig` | `AxiosRequestConfig`                                 | No       | -                 | -                                                                                                                                           |
+type UserProviderConfig<TUser extends IUser = IUser> = {
+  loginUrl: string | { local: string; social: string };
+  logoutUrl: string;
+  localOnly: boolean;
+  mode: 'storage' | 'fetch';
+  key?: string;
+  storage?: 'localStorage' | 'sessionStorage' | 'cookie';
+  useProfile?: (http: HttpClient) => TUser | null;
+} & LoginKeys &
+  HttpClient;
+```
+
+**loginUrl `string | { local: string; social: string; }`** <br />
+_Required_
+
+Endpoint(s) which will be used for the request. If `localOnly` is set to `false`, it will require an `object` with a `local` and `social` field. Both takes a `string` which will be used as url for the request. If `localOnly` is set to `true`, it will require only one `string` which will be used as url for the request.
+
+**logoutUrl `string`** <br />
+_Required_
+
+Endpoint which will be used for the request.
+
+**localOnly `boolean`** <br />
+_Optional_
+_Default: `false`_
+
+Determines if the provider has social login or not.
+
+**mode `'storage' | 'fetch'`** <br />
+_Required_
+
+Determines the mode of the provider. `'storage'` means using one of the browser's storage object, `'fetch'` means using a hook to fetch user data continuously.
+
+**key `string`** <br />
+_Required (available when `mode: 'storage'`)_ <br />
+_Default: Simple, internal loading component_
+
+Name of the key in the chosen storage.
+
+**storage `'localStorage' | 'sessionStorage' | 'cookie'`** <br />
+_Optional (available when `mode: 'storage'`)_ <br />
+_Default: `'cookie'`_
+
+Used for setting and reading user data from.
+
+**useProfile `(http: HttpClient) => TUser | null`** <br />
+_Required (available when `mode: 'fetch'`)_ <br />
+
+Used for fetching user data.
 
 ```jsx
 // does not matter where you create it
@@ -343,6 +320,69 @@ console.log(user);
 ```
 
 In the example above the `login` method requires an object which will be used for the `login` utility function.
+
+# Types
+
+## LoginKeys
+
+```ts
+type LoginKeys = {
+  dataKey: string;
+  authKey?: string;
+};
+```
+
+**dataKey `string`** <br />
+_Required_
+
+Name of the field that comes back in the response's `data` object.
+
+```json
+// { dataKey: 'user' }
+{
+  "http_status_code": 200,
+  "status": true,
+  "message": "USERS_LOGIN",
+  "data": {
+    "user": {
+      "id": 36,
+      "name": "Gipsz Jakab",
+      "email": "gipsz.jakab@test.com",
+      "is_admin": true,
+      "enabled": true,
+      "lastlogin_at": "2019-03-26 09:20:42"
+    }
+  },
+  "errors": []
+}
+```
+
+**authKey `string`** <br />
+_Optional_ <br />
+_Default: `authorization`_
+
+This is the name of the header that should be send along with the request. Only works if it's set in the cookies.
+
+## HttpClient
+
+```ts
+type HttpClient = {
+  httpClient?: AxiosInstance;
+  httpConfig?: Omit<AxiosRequestConfig, 'withCredentials'>;
+};
+```
+
+**httpClient `AxiosInstance`** <br />
+_Optional_ <br />
+_Default: `axios`_
+
+Custom http client to be used instead of `axios.default`.
+
+**httpConfig `AxiosRequestConfig`** <br />
+_Optional_ <br />
+_Default: `undefined`_
+
+Additional config for the http client. Can be used for the default client.
 
 # For developers
 
