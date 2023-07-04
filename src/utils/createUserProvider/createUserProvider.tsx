@@ -1,18 +1,13 @@
-import { createHttpClient } from '@fotexnet/react-request';
 import React, { createContext, useContext } from 'react';
 import { HttpClient } from '../../interfaces/Record';
 import cookies from '../cookies/cookies';
 import login, { LoginProvider } from '../login/login';
-import createInterceptors from './createInterceptors';
-import { IUser, UserProviderConfig, UserProviderFactory, UserObject } from './types';
-import { useConfig, useInitialUser } from './utils';
+import { User, UserProviderConfig, UserProviderFactory, UserObject } from './types';
+import { useConfig, useHttpClient, useInitialUser } from './utils';
 
 // TODO: update user based on deps
-function createUserProvider<TUser extends IUser = IUser>(
-  config: UserProviderConfig<TUser>
-): UserProviderFactory<TUser> {
-  const interceptors = createInterceptors(config.authKey);
-  const { client } = createHttpClient({ ...interceptors });
+function createUserProvider<TUser extends User = User>(config: UserProviderConfig<TUser>): UserProviderFactory<TUser> {
+  const { client, interceptors } = useHttpClient();
   const UserContext = createContext<UserObject<TUser> | null>(null);
   const UserProvider: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => {
     const { initialUserConfig, httpClientConfig, keys, extractUrl } = useConfig(config);
@@ -22,7 +17,9 @@ function createUserProvider<TUser extends IUser = IUser>(
       <UserContext.Provider
         value={{
           user,
-          update: setUser,
+          update: (data: Partial<TUser>) => {
+            setUser(prev => ({ ...prev, ...data } as TUser));
+          },
           login: async ({ httpClient: hClient, httpConfig: hConfig, ...provider }: LoginProvider & HttpClient) => {
             const apiUrl: string = extractUrl(provider.provider);
             const httpObj: HttpClient = {

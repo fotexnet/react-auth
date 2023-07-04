@@ -1,10 +1,12 @@
-import { useMemo, useCallback, useState, useEffect } from 'react';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import { useMemo, useCallback, useState, useEffect, DependencyList } from 'react';
+import { useCookie } from '../../hooks';
 import { HttpClient } from '../../interfaces/Record';
 import cookies from '../cookies/cookies';
 import { Provider } from '../login/login';
-import { IUser, UserProviderConfig, UserProviderMode } from './types';
+import { User, Interceptors, UserProviderConfig, UserProviderMode } from './types';
 
-export function useConfig<TUser extends IUser = IUser>(config: UserProviderConfig<TUser>): UseConfigResult<TUser> {
+export function useConfig<TUser extends User = User>(config: UserProviderConfig<TUser>): UseConfigResult<TUser> {
   const keys = useMemo(() => ({ dataKey: config.dataKey, authKey: config.authKey || 'authorization' }), []);
   const initialUserConfig: UserProviderMode<TUser> = useMemo(() => {
     return config.mode === 'fetch'
@@ -22,8 +24,9 @@ export function useConfig<TUser extends IUser = IUser>(config: UserProviderConfi
 }
 
 // TODO: set user if mode set to storage (?)
-export function useInitialUser<TUser extends IUser = IUser>(
-  config: UserProviderMode<TUser> & HttpClient
+export function useInitialUser<TUser extends User = User>(
+  config: UserProviderMode<TUser> & HttpClient,
+  dependencies: DependencyList = []
 ): UseInitialUserResult<TUser> {
   const parseInitialUser = useCallback((str?: string | null) => {
     return JSON.parse(str || 'null') as TUser | null;
@@ -31,7 +34,7 @@ export function useInitialUser<TUser extends IUser = IUser>(
 
   const getProfileFn = useCallback(() => {
     return config.mode === 'fetch' ? config.useProfile : (_: HttpClient) => null;
-  }, []);
+  }, dependencies);
 
   const useProfile = getProfileFn();
   const profile = useProfile({ httpClient: config.httpClient, httpConfig: config.httpConfig });
@@ -41,12 +44,51 @@ export function useInitialUser<TUser extends IUser = IUser>(
     if (config.mode === 'fetch') return;
     const storage = config.storage || 'cookie';
     setUser(parseInitialUser(storage === 'cookie' ? cookies.get(config.key) : window[storage].getItem(config.key)));
-  }, []);
+  }, dependencies);
 
   return [user, setUser];
 }
 
-type UseConfigResult<TUser extends IUser = IUser> = {
+export function useHttpClient(authKey: string = 'authorization', config?: AxiosRequestConfig): UseHttpClient {
+  const client = useMemo(() => axios.create(config), []);
+  const { cookie, set } = useCookie<string>(authKey);
+  const interceptors: Interceptors = useMemo(() => {
+    return {
+      request: {
+        onFulfilled: (config: InternalAxiosRequestConfig<unknown>): InternalAxiosRequestConfig<unknown> => {
+          if (typeof window === 'undefined') return config;
+          if (!!cookie) config.headers.setAuthorization(`Bearer ${cookie}`);
+          return { ...config, withCredentials: true };
+        },
+      },
+      response: {
+        onFulfilled: (response: AxiosResponse<unknown, unknown>): AxiosResponse<unknown, unknown> => {
+          if (typeof window === 'undefined') return response;
+          const value = response.headers[authKey.toLowerCase()]?.split(' ')?.pop();
+          if (value) set(value, 365 * 150);
+          return response;
+        },
+      },
+    };
+  }, []);
+
+  useEffect(() => {
+    client.interceptors.request.use(
+      interceptors.request.onFulfilled,
+      interceptors.request.onRejected,
+      interceptors.request.options
+    );
+    client.interceptors.response.use(
+      interceptors.response.onFulfilled,
+      interceptors.response.onRejected,
+      interceptors.response.options
+    );
+  }, []);
+
+  return { client, interceptors };
+}
+
+type UseConfigResult<TUser extends User = User> = {
   keys: {
     dataKey: string;
     authKey: string;
@@ -56,7 +98,12 @@ type UseConfigResult<TUser extends IUser = IUser> = {
   extractUrl: (provider: Provider) => string;
 };
 
-type UseInitialUserResult<TUser extends IUser = IUser> = [
+type UseInitialUserResult<TUser extends User = User> = [
   TUser | null,
   React.Dispatch<React.SetStateAction<TUser | null>>
 ];
+
+type UseHttpClient = {
+  client: AxiosInstance;
+  interceptors: Interceptors;
+};
