@@ -7,14 +7,22 @@
   - [Wrappers](#wrappers)
     - [withAuthGuard](#withauthguard)
   - [Hooks](#hooks)
-    - [useImage](#useimage)
     - [useCookie](#usecookie)
+    - [useImage](#useimage)
   - [Utils](#utils)
+    - [cookies `object`](#cookies-object)
+    - [createCookieName](#createcookiename)
     - [login](#login)
     - [isLocalCredentials](#islocalcredentials)
     - [isSocialCredentials](#issocialcredentials)
     - [createAuthGuard](#createauthguard)
     - [createUserProvider](#createuserprovider)
+- [Types](#types)
+  - [LoginKeys](#loginkeys)
+  - [HttpClient](#httpclient)
+- [For developers](#for-developers)
+  - [How to contribute](#how-to-contribute)
+  - [How to release a new version](#how-to-release-a-new-version)
 
 # Prerequisites
 
@@ -36,56 +44,50 @@
 ### withAuthGuard
 
 Provides protection for any component. Convenient way to use it is to wrap the target component when exporting it.
+It requires an `AuthGuardConfig` object which requires a `url`.
 
 ```jsx
-export default withAuthGuard(Component, { url: 'YOUR_API', createAuthHeader: () => ['header_name', 'token_value'] });
+export default withAuthGuard(Component, { url: 'API_URL' });
 ```
 
-It requires an `AuthGuardConfig` object which requires an `url` and a `createAuthHeader` function.
-
-| parameter                   | type                     | required | default           | description                                                                                                                       |
-| --------------------------- | ------------------------ | -------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `url`                       | `string`                 | Yes      | -                 | An http `GET` request will be sent to this `url` with the required authorization headers to check that the user's token is active |
-| `createAuthHeader`          | `() => [string, string]` | Yes      | -                 | Returns a tuple where the first element is the name of the header and the second element is the token                             |
-| `httpClient`                | `AxiosInstance`          | No       | `axios`           | -                                                                                                                                 |
-| `httpConfig`                | `AxiosRequestConfig`     | No       | -                 | -                                                                                                                                 |
-| `LoadingIndicatorComponent` | `React.ComponentType`    | No       | `FallbackLoading` | While the request is pending, this component will be shown                                                                        |
-| `UnauthorizedComponent`     | `React.ComponentType`    | No       | `Fallback401`     | If the token check returns `401`, this component will be shown                                                                    |
-| `InternalErrorComponent`    | `React.ComponentType`    | No       | `Fallback500`     | If the token check fails for some other reason and the server returns `500`, this component will be shown                         |
-
-**Defaults**
-
-```jsx
-// LoadingIndicatorComponent
-const FallbackLoading = () => <div data-testid="loading">Loading...</div>;
+```ts
+type AuthGuardConfig = {
+  url: string;
+  LoadingIndicatorComponent?: React.ComponentType;
+  UnauthorizedComponent?: React.ComponentType;
+  InternalErrorComponent?: React.ComponentType;
+} & Pick<LoginKeys, 'authKey'> &
+  HttpClient;
 ```
 
-```jsx
-// UnauthorizedComponent
-const Fallback401 = () => <div data-testid="auth-error-401">401</div>;
-```
+**url `string`** <br />
+_Required_
 
-```jsx
-// InternalErrorComponent
-const Fallback500 = () => <div data-testid="auth-error-500">500</div>;
-```
+The endpoint which will be used for the request.
+
+**LoadingIndicatorComponent `React.ComponentType`** <br />
+_Optional_ <br />
+_Default: Simple, internal loading component_
+
+While the request is pending, this component will be shown.
+
+**UnauthorizedComponent `React.ComponentType`** <br />
+_Optional_ <br />
+_Default: Simple, internal unauthorized component_
+
+If the token check returns `401`, this component will be shown.
+
+**InternalErrorComponent `React.ComponentType`** <br />
+_Optional_ <br />
+_Default: Simple, internal error component_
+
+If the token check fails for some other reason and the server returns `500`, this component will be shown.
 
 ## Hooks
 
-### useImage
-
-Provides an easy way to convert an image file into `base64` string. Returns the data url. The API allows you to pass a configuration object where you can modify the request.
-
-```jsx
-function Component() {
-  const imageUrl = useImage('path_to_image');
-  return <img src={imageUrl} />;
-}
-```
-
 ### useCookie
 
-Provides an easy way to use the `cookies` object in a more reactive way. Operates on individual cookies.
+Provides an easy way to use the `cookies` object in a more React way. Operates on individual cookies.
 
 ```jsx
 function Component() {
@@ -105,7 +107,49 @@ function Component() {
 }
 ```
 
+### useImage
+
+Provides an easy way to convert an image file into `base64` string. Returns the data url. The API allows you to pass a configuration object where you can modify the request.
+
+```jsx
+function Component() {
+  const imageUrl = useImage('path_to_image');
+  return <img src={imageUrl} />;
+}
+```
+
 ## Utils
+
+### cookies `object`
+
+**get `(cname: string) => string`** <br />
+_cname: cookie name in camelCase (works best)_ <br />
+_Returns: parsed cookie value if exists_
+
+Searches the `document.cookie` string for the given `cname` and returns it's value if found, empty string otherwise.
+
+**set `(cname: string, cvalue: any, exdays: number) => void`** <br />
+_cname: cookie name in camelCase (works best)_ <br />
+_cvalue: anything you want to assign as value_ <br />
+_exdays: expiration date in days_
+
+Sets a new key-value pair in the `document.cookie` string.
+
+**delete `(cname: string) => void`** <br />
+_cname: cookie name in camelCase (works best)_
+
+Deletes cookie from `document.cookie` string by resetting it's expiration day to `Thu, 01 Jan 1970 00:00:00 UTC`. This works even if the cookie did NOT exist before.
+
+### createCookieName
+
+_Signature: (str: string) => string_
+
+Transforms given string into `lower_snake_case`. Works as if the input is in `camelCase`.
+
+```js
+const myCookie = createCookieName('myCookie'); // my_cookie
+const abc = createCookieName('ABC'); // a_b_c
+```
 
 ### login
 
@@ -113,18 +157,29 @@ Provides an easy way to get an access token for the `fotexnet` infrastructure.
 Define the login endpoint via `apiUrl`, the `dataKey` which will be used to identify the user object
 and a `provider` method as well as the associated `credentials` info.
 
-**Configuration object**
+```ts
+type LoginConfig = {
+  apiUrl: string;
+  provider: Provider;
+  credentials: Credentials;
+} & LoginKeys &
+  HttpClient;
+```
 
-| parameter     | type                 | required | default | description                                                         |
-| ------------- | -------------------- | -------- | ------- | ------------------------------------------------------------------- |
-| `dataKey`     | `string`             | Yes      | -       | This key will be used to acces the user object on the response body |
-| `apiUrl`      | `string`             | Yes      | -       | Full url of the login endpoint                                      |
-| `provider`    | `Provider`           | Yes      | -       | Authentication provider                                             |
-| `credentials` | `Credentials`        | Yes      | -       | Authentication info                                                 |
-| `httpClient`  | `AxiosInstance`      | No       | `axios` | -                                                                   |
-| `httpConfig`  | `AxiosRequestConfig` | No       | -       | -                                                                   |
+**apiUrl `string`** <br />
+_Required_
 
-**Supported providers:** `'local' | 'google' | 'facebook'`
+Endpoint which will be used for the request.
+
+**provider `Provider`** <br />
+_Required_
+
+Name of the provider. Possible values are `'local' | 'google' | 'facebook'`.
+
+**credentials `Credentials`** <br />
+_Required_
+
+It's an `object` which depends on the `provider` field. If it's set to `'local'`, this `object` will require an `email` and `password` field. If it's set to any social provider available, it will require a `social_token` which comes from the social login response.
 
 ### isLocalCredentials
 
@@ -157,21 +212,61 @@ Returns a higher-order component that calls the `[withAuthGuard](#withauthguard)
 Provides an easy way to share user data throughout the application. Returns a `UserProvider` wrapper, which you can use to wrap your app, and a `useUser` hook to track user data.
 The `useUser` hook has 2 methods (`set` and `unset`), that are used to refresh the UI, as well as the `user` object.
 
-**Configuration object:**
+```ts
+interface IUser extends Record<string, unknown> {
+  id: number;
+  email: string;
+}
 
-| parameter    | type                                                 | required | default           | description                                                                                                                                 |
-| ------------ | ---------------------------------------------------- | -------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mode`       | `'storage'` or `'fetch'`                             | Yes      | -                 | This value determines where to load user data from when the page is loaded. `'storage'` means browser storage, `'fetch'` means http request |
-| `storage`    | `'localStorage'` or `'sessionStorage'` or `'cookie'` | No       | `'cookie'`        | Only available when `mode` is set to `storage`. Used to set initial user data                                                               |
-| `key`        | `string`                                             | Yes      | -                 | Only available when `mode` is set to `storage`. Storage key                                                                                 |
-| `useProfile` | `(http: HttpClient) => TUser, null`                  | Yes      | -                 | Only available when `mode` is set to `fetch`. Used to set initial user data                                                                 |
-| `dataKey`    | `string`                                             | Yes      | -                 | This key will be used to acces the user object on the response body                                                                         |
-| `authKey`    | `string`                                             | No       | `'authorization'` | This key will be used to acces the access token in the request/response headers                                                             |
-| `loginUrl`   | `string | { local: tring, social: string }`          | Yes      | -                 | This `string` will be used for the `login` function                                                                                         |
-| `logoutUrl`  | `string`                                             | Yes      | -                 | This `string` will be used for the `logout` function                                                                                        |
-| `localOnly`  | `boolean`                                            | No       | `false`           | This `boolean` will be used to determine the type of `loginUrl`                                                                             |
-| `httpClient` | `AxiosInstance`                                      | No       | `axios`           | -                                                                                                                                           |
-| `httpConfig` | `AxiosRequestConfig`                                 | No       | -                 | -                                                                                                                                           |
+type UserProviderConfig<TUser extends IUser = IUser> = {
+  loginUrl: string | { local: string; social: string };
+  logoutUrl: string;
+  localOnly: boolean;
+  mode: 'storage' | 'fetch';
+  key?: string;
+  storage?: 'localStorage' | 'sessionStorage' | 'cookie';
+  useProfile?: (http: HttpClient) => TUser | null;
+} & LoginKeys &
+  HttpClient;
+```
+
+**loginUrl `string | { local: string; social: string; }`** <br />
+_Required_
+
+Endpoint(s) which will be used for the request. If `localOnly` is set to `false`, it will require an `object` with a `local` and `social` field. Both takes a `string` which will be used as url for the request. If `localOnly` is set to `true`, it will require only one `string` which will be used as url for the request.
+
+**logoutUrl `string`** <br />
+_Required_
+
+Endpoint which will be used for the request.
+
+**localOnly `boolean`** <br />
+_Optional_
+_Default: `false`_
+
+Determines if the provider has social login or not.
+
+**mode `'storage' | 'fetch'`** <br />
+_Required_
+
+Determines the mode of the provider. `'storage'` means using one of the browser's storage object, `'fetch'` means using a hook to fetch user data continuously.
+
+**key `string`** <br />
+_Required (available when `mode: 'storage'`)_ <br />
+_Default: Simple, internal loading component_
+
+Name of the key in the chosen storage.
+
+**storage `'localStorage' | 'sessionStorage' | 'cookie'`** <br />
+_Optional (available when `mode: 'storage'`)_ <br />
+_Default: `'cookie'`_
+
+Used for setting and reading user data from.
+
+**useProfile `(http: HttpClient) => TUser | null`** <br />
+_Required (available when `mode: 'fetch'`)_ <br />
+
+Used for fetching user data.
 
 ```jsx
 // does not matter where you create it
@@ -225,3 +320,88 @@ console.log(user);
 ```
 
 In the example above the `login` method requires an object which will be used for the `login` utility function.
+
+# Types
+
+## LoginKeys
+
+```ts
+type LoginKeys = {
+  dataKey: string;
+  authKey?: string;
+};
+```
+
+**dataKey `string`** <br />
+_Required_
+
+Name of the field that comes back in the response's `data` object.
+
+```json
+// { dataKey: 'user' }
+{
+  "http_status_code": 200,
+  "status": true,
+  "message": "USERS_LOGIN",
+  "data": {
+    "user": {
+      "id": 36,
+      "name": "Gipsz Jakab",
+      "email": "gipsz.jakab@test.com",
+      "is_admin": true,
+      "enabled": true,
+      "lastlogin_at": "2019-03-26 09:20:42"
+    }
+  },
+  "errors": []
+}
+```
+
+**authKey `string`** <br />
+_Optional_ <br />
+_Default: `authorization`_
+
+This is the name of the header that should be send along with the request. Only works if it's set in the cookies.
+
+## HttpClient
+
+```ts
+type HttpClient = {
+  httpClient?: AxiosInstance;
+  httpConfig?: Omit<AxiosRequestConfig, 'withCredentials'>;
+};
+```
+
+**httpClient `AxiosInstance`** <br />
+_Optional_ <br />
+_Default: `axios`_
+
+Custom http client to be used instead of `axios.default`.
+
+**httpConfig `AxiosRequestConfig`** <br />
+_Optional_ <br />
+_Default: `undefined`_
+
+Additional config for the http client. Can be used for the default client.
+
+# For developers
+
+## How to contribute
+
+1. Create an issue about the changes you'd like to see (use the pre-made templates for features and bugs)
+2. Clone the repository on your local machine (`git pull` if you already cloned it)
+3. Create a new branch locally (`feature/branch-name` or `bugfix/branch-name`) from `main`
+4. Make changes
+5. Commit your changes using `git commit`, then choose the appropriate field (this is important for ci)
+6. Follow the CLI instructions
+7. Push and create a PR
+8. Wait for tests to pass
+9. Merge into main
+
+## How to release a new version
+
+1. Go to `GitHub Actions`
+2. Choose `Release` action on the left
+3. Click on `Run workflow` that's located in the top right of the previous actions table
+
+_**Note:** For this to work, it's very important to follow the [How to contribute](#how-to-contribute) section._
