@@ -8,7 +8,7 @@ describe('withAuthGuard', () => {
   let getSpy: jest.SpyInstance;
   let WrappedComponent: React.FC;
   const Component = () => <div data-testid="protected">Protected content</div>;
-  const config: AuthGuardConfig = { url: 'my_api', createAuthHeader: () => ['authorization', 'jwt_token'] };
+  const config: AuthGuardConfig = { url: 'my_api' };
 
   beforeEach(() => {
     getSpy = jest.spyOn(axios, 'get');
