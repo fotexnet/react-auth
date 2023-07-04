@@ -53,9 +53,8 @@ export default withAuthGuard(Component, { url: 'API_URL' });
 ```ts
 type AuthGuardConfig = {
   url: string;
+  useError?: (status: number) => React.ComponentType | null;
   LoadingIndicatorComponent?: React.ComponentType;
-  UnauthorizedComponent?: React.ComponentType;
-  InternalErrorComponent?: React.ComponentType;
 } & Pick<LoginKeys, 'authKey'> &
   HttpClient;
 ```
@@ -71,17 +70,11 @@ _Default: Simple, internal loading component_
 
 While the request is pending, this component will be shown.
 
-**UnauthorizedComponent `React.ComponentType`** <br />
+**useError `(status: number) => React.ComponentType | null`** <br />
 _Optional_ <br />
-_Default: Simple, internal unauthorized component_
+_Default: a hook that returns `null`_
 
-If the token check returns `401`, this component will be shown.
-
-**InternalErrorComponent `React.ComponentType`** <br />
-_Optional_ <br />
-_Default: Simple, internal error component_
-
-If the token check fails for some other reason and the server returns `500`, this component will be shown.
+Error hook that will be called at the start. Behaves as a standard hook.
 
 ## Hooks
 
