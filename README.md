@@ -53,6 +53,8 @@ export default withAuthGuard(Component, { url: 'API_URL' });
 ```ts
 type AuthGuardConfig = {
   url: string;
+  exceptOr?: boolean[];
+  exceptAnd?: boolean[];
   useError?: (status: number) => React.ComponentType | null;
   LoadingIndicatorComponent?: React.ComponentType;
 } & Pick<LoginKeys, 'authKey'> &
@@ -69,6 +71,18 @@ _Optional_ <br />
 _Default: Simple, internal loading component_
 
 While the request is pending, this component will be shown.
+
+**exceptOr `boolean[]`** <br />
+_Optional_ <br />
+_Default: `undefined`_
+
+If any value is evaluated to `true`, then the guard will NOT run. This property is used for making exceptions for multiple evaluations.
+
+**exceptAnd `boolean[]`** <br />
+_Optional_ <br />
+_Default: `undefined`_
+
+If every value is evaluated to `true`, then the guard will NOT run. This property is used for making exceptions for multiple evaluations.
 
 **useError `(status: number) => React.ComponentType | null`** <br />
 _Optional_ <br />

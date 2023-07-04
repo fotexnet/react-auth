@@ -1,11 +1,13 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { HttpClient } from '../../interfaces/Record';
 import cookies from '../../utils/cookies/cookies';
 import { LoginKeys } from '../../utils/login/login';
 
 export type AuthGuardConfig = {
   url: string;
+  exceptOr?: boolean[];
+  exceptAnd?: boolean[];
   useError?: (status: number) => React.ComponentType | null;
   LoadingIndicatorComponent?: React.ComponentType;
 } & Pick<LoginKeys, 'authKey'> &
@@ -54,9 +56,24 @@ function withAuthGuard<T extends object>(Component: React.ComponentType<T>, conf
     const Fallback500 = () => <div data-testid="auth-error-500">500</div>;
     const InternalError = useCallback(() => (!!Fallback ? <Fallback /> : <Fallback500 />), []);
 
-    if (isLoading) return <Loading />;
-    if (status === 401) return <Unauthorized />;
-    if (status === 500) return <InternalError />;
+    const isExceptOr = useMemo(() => config.exceptOr?.some(ex => ex), []);
+    const isExceptAnd = useMemo(() => config.exceptAnd?.every(ex => ex), []);
+    const isValidExceptOr = useMemo(() => Array.isArray(config.exceptOr) && config.exceptOr.length > 1, []);
+    const isValidExceptAnd = useMemo(() => Array.isArray(config.exceptAnd) && config.exceptAnd.length > 1, []);
+    const isMultipleRelations = useMemo(() => isValidExceptOr && isValidExceptAnd, []);
+    const isSingleRelation = useMemo(
+      () => (!isValidExceptOr && isValidExceptAnd) || (isValidExceptOr && !isValidExceptAnd),
+      []
+    );
+    const isBothException = useMemo(() => isMultipleRelations && isExceptOr && isExceptAnd, []);
+    const isAndOrException = useMemo(() => isSingleRelation && (isExceptOr || isExceptAnd), []);
+
+    if (isBothException || isAndOrException) {
+      if (isLoading) return <Loading />;
+      if (status === 401) return <Unauthorized />;
+      if (status === 500) return <InternalError />;
+    }
+
     return <Component {...props} />;
   };
 }
