@@ -55,7 +55,7 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>(
   return {
     UserProvider,
     useUser,
-    meta: { interceptors },
+    interceptors,
   };
 }
 
