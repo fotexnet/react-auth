@@ -72,19 +72,13 @@ _Default: Simple, internal loading component_
 
 While the request is pending, this component will be shown.
 
-**exceptOr `boolean[]`** <br />
+**useException `() => boolean`** <br />
 _Optional_ <br />
-_Default: `undefined`_
+_Default: a hook that returns `false`_
 
-If any value is evaluated to `true`, then the guard will NOT run. This property is used for making exceptions for multiple evaluations.
+If it is evaluated to `true`, then the guard will NOT run. Behaves as a standard hook.
 
-**exceptAnd `boolean[]`** <br />
-_Optional_ <br />
-_Default: `undefined`_
-
-If every value is evaluated to `true`, then the guard will NOT run. This property is used for making exceptions for multiple evaluations.
-
-**useError `(status: number) => React.ComponentType | null`** <br />
+**useError `(status: number) => JSX.Element | null`** <br />
 _Optional_ <br />
 _Default: a hook that returns `null`_
 
