@@ -8,7 +8,7 @@ type SocialProvider = 'google' | 'facebook';
 type SocialPayload = SocialCredentials & { social_provider: string };
 type AuthResponse<TUser extends DatabaseRecord> = IResponse<{ [x: string]: TUser }>;
 
-export type User<TProps extends DatabaseRecord> = { token: string } & TProps;
+export type AuthenticatedUser<TProps extends DatabaseRecord> = { token: string } & TProps;
 
 export type Credentials = LocalCredentials | SocialCredentials;
 export type LocalCredentials = { email: string; password: string };
@@ -29,7 +29,9 @@ export type LoginProvider =
  * @param config Login configuration
  * @returns User object with an access token
  */
-async function login<TRecord extends DatabaseRecord = DatabaseRecord>(config: LoginConfig): Promise<User<TRecord>> {
+async function login<TRecord extends DatabaseRecord = DatabaseRecord>(
+  config: LoginConfig
+): Promise<AuthenticatedUser<TRecord>> {
   const client: AxiosInstance = config.httpClient || axios;
   const payload: LocalCredentials | SocialPayload =
     config.provider === 'local' ? config.credentials : { ...config.credentials, social_provider: config.provider };

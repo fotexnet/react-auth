@@ -2,7 +2,7 @@ export { default as cookies, createCookieName } from './cookies/cookies';
 export { default as createAuthGuard } from './createAuthGuard/createAuthGuard';
 export { default as createUserProvider } from './createUserProvider/createUserProvider';
 export {
-  DefaultUser as IUser,
+  DefaultUser,
   UserObject,
   UserProviderConfig,
   UserProviderFactory,
@@ -14,7 +14,7 @@ export {
   isLocalCredentials,
   isSocialCredentials,
   LoginConfig,
-  User,
+  AuthenticatedUser,
   Provider,
   Credentials,
   LocalCredentials,

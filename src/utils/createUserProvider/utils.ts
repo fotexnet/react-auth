@@ -4,9 +4,11 @@ import { useCookie } from '../../hooks';
 import { HttpClient } from '../../interfaces/Record';
 import cookies from '../cookies/cookies';
 import { Provider } from '../login/login';
-import { User, Interceptors, UserProviderConfig, UserProviderMode } from './types';
+import { DefaultUser, Interceptors, UserProviderConfig, UserProviderMode } from './types';
 
-export function useConfig<TUser extends User = User>(config: UserProviderConfig<TUser>): UseConfigResult<TUser> {
+export function useConfig<TUser extends DefaultUser = DefaultUser>(
+  config: UserProviderConfig<TUser>
+): UseConfigResult<TUser> {
   const keys = useMemo(() => ({ dataKey: config.dataKey, authKey: config.authKey || 'authorization' }), []);
   const initialUserConfig: UserProviderMode<TUser> = useMemo(() => {
     return config.mode === 'fetch'
@@ -24,7 +26,7 @@ export function useConfig<TUser extends User = User>(config: UserProviderConfig<
 }
 
 // TODO: set user if mode set to storage (?)
-export function useInitialUser<TUser extends User = User>(
+export function useInitialUser<TUser extends DefaultUser = DefaultUser>(
   config: UserProviderMode<TUser> & HttpClient,
   dependencies: DependencyList = []
 ): UseInitialUserResult<TUser> {
@@ -88,7 +90,7 @@ export function useHttpClient(authKey: string = 'authorization', config?: AxiosR
   return { client, interceptors };
 }
 
-type UseConfigResult<TUser extends User = User> = {
+type UseConfigResult<TUser extends DefaultUser = DefaultUser> = {
   keys: {
     dataKey: string;
     authKey: string;
@@ -98,7 +100,7 @@ type UseConfigResult<TUser extends User = User> = {
   extractUrl: (provider: Provider) => string;
 };
 
-type UseInitialUserResult<TUser extends User = User> = [
+type UseInitialUserResult<TUser extends DefaultUser = DefaultUser> = [
   TUser | null,
   React.Dispatch<React.SetStateAction<TUser | null>>
 ];
