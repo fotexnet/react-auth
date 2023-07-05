@@ -1,7 +1,7 @@
 import React, { createContext, useContext } from 'react';
 import { HttpClient } from '../../interfaces/Record';
 import cookies from '../cookies/cookies';
-import client from '../http/http';
+import client from '../createHttpClient/createHttpClient';
 import login, { LoginProvider } from '../login/login';
 import { DefaultUser, UserProviderConfig, UserProviderFactory, UserObject } from './types';
 import { useConfig, useInitialUser } from './utils';
@@ -34,7 +34,7 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>(
           logout: async (http?: HttpClient) => {
             const httpClient = http?.httpClient || httpClientConfig.httpClient || client;
             const httpConfig = http?.httpConfig || httpClientConfig.httpConfig;
-            await httpClient.post(config.logoutUrl, undefined, httpConfig);
+            await httpClient.post(config.logoutUrl, undefined, { ...httpConfig, withCredentials: true });
             setUser(null);
             cookies.delete(keys.authKey);
           },

@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import axios from 'axios';
 import React from 'react';
+import client from '../createHttpClient/createHttpClient';
 import createUserProvider from './createUserProvider';
 import { UserProviderUrls, UserProviderFactory } from './types';
 
@@ -9,15 +9,37 @@ type User = {
   email: string;
 };
 
-jest.mock('axios');
+jest.mock('axios', () => ({
+  create: jest.fn(() => ({
+    interceptors: {
+      request: {
+        use: jest.fn(),
+      },
+      response: {
+        use: jest.fn(),
+      },
+    },
+    post: jest.fn(),
+  })),
+  post: jest.fn(),
+}));
 
 describe('createUserProvider', () => {
+  let postSpy: jest.SpyInstance;
   const providerOptions: UserProviderUrls & { dataKey: string } = {
     dataKey: 'user',
     loginUrl: 'your_api_goes_here',
     logoutUrl: 'your_api_goes_here',
     localOnly: true,
   };
+
+  beforeEach(() => {
+    postSpy = jest.spyOn(client, 'post');
+  });
+
+  afterEach(() => {
+    postSpy.mockRestore();
+  });
 
   describe('fetch mode', () => {
     let factory: UserProviderFactory<User>;
@@ -83,7 +105,7 @@ describe('createUserProvider', () => {
       await waitFor(() => {
         expect(JSON.parse(node.textContent || '')).toEqual(null);
       });
-      expect(axios.post).toHaveBeenCalledWith(providerOptions.logoutUrl, undefined, { withCredentials: true });
+      expect(postSpy).toHaveBeenCalledWith(providerOptions.logoutUrl, undefined, { withCredentials: true });
     });
   });
   describe('storage mode - cookie', () => {
@@ -148,7 +170,7 @@ describe('createUserProvider', () => {
       await waitFor(() => {
         expect(JSON.parse(node.textContent || '')).toEqual(null);
       });
-      expect(axios.post).toHaveBeenCalledWith(providerOptions.logoutUrl, undefined, { withCredentials: true });
+      expect(postSpy).toHaveBeenCalledWith(providerOptions.logoutUrl, undefined, { withCredentials: true });
     });
   });
 });
