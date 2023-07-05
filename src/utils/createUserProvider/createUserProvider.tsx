@@ -1,3 +1,4 @@
+import { AxiosRequestConfig } from 'axios';
 import React, { createContext, useContext } from 'react';
 import { HttpClient } from '../../interfaces/Record';
 import cookies from '../cookies/cookies';
@@ -33,8 +34,9 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>(
           },
           logout: async (http?: HttpClient) => {
             const httpClient = http?.httpClient || httpClientConfig.httpClient || client;
-            const httpConfig = http?.httpConfig || httpClientConfig.httpConfig;
-            await httpClient.post(config.logoutUrl, undefined, { ...httpConfig, withCredentials: true });
+            const httpConfig = (http?.httpConfig || httpClientConfig.httpConfig || {}) as AxiosRequestConfig;
+            httpConfig.withCredentials = true;
+            await httpClient.post(config.logoutUrl, undefined, httpConfig);
             setUser(null);
             cookies.delete(keys.authKey);
           },
