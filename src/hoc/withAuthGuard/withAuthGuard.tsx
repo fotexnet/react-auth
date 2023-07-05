@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { HttpClient } from '../../interfaces/Record';
 import cookies from '../../utils/cookies/cookies';
 import { LoginKeys } from '../../utils/login/login';
@@ -43,32 +43,32 @@ function withAuthGuard<T extends object>(Component: React.ComponentType<T>, conf
       };
     }, []);
 
-    // TODO: create better fallbacks
-    const FallbackLoading = () => <div data-testid="loading">Loading...</div>;
+    const FallbackLoading = useCallback(() => <div data-testid="loading">Loading...</div>, []);
     const Loading = useCallback(
       () => (!!config.LoadingIndicatorComponent ? <config.LoadingIndicatorComponent /> : <FallbackLoading />),
       []
     );
 
-    const Fallback401 = () => <div data-testid="auth-error-401">401</div>;
+    const Fallback401 = useCallback(() => <div data-testid="auth-error-401">401</div>, []);
     const Unauthorized = useCallback(() => (!!Fallback ? <Fallback /> : <Fallback401 />), []);
 
-    const Fallback500 = () => <div data-testid="auth-error-500">500</div>;
+    const Fallback500 = useCallback(() => <div data-testid="auth-error-500">500</div>, []);
     const InternalError = useCallback(() => (!!Fallback ? <Fallback /> : <Fallback500 />), []);
 
-    const isExceptOr = useMemo(() => config.exceptOr?.some(ex => ex), []);
-    const isExceptAnd = useMemo(() => config.exceptAnd?.every(ex => ex), []);
-    const isValidExceptOr = useMemo(() => Array.isArray(config.exceptOr) && config.exceptOr.length > 1, []);
-    const isValidExceptAnd = useMemo(() => Array.isArray(config.exceptAnd) && config.exceptAnd.length > 1, []);
-    const isMultipleRelations = useMemo(() => isValidExceptOr && isValidExceptAnd, []);
-    const isSingleRelation = useMemo(
-      () => (!isValidExceptOr && isValidExceptAnd) || (isValidExceptOr && !isValidExceptAnd),
-      []
-    );
-    const isBothException = useMemo(() => isMultipleRelations && isExceptOr && isExceptAnd, []);
-    const isAndOrException = useMemo(() => isSingleRelation && (isExceptOr || isExceptAnd), []);
+    const hasException = useCallback(() => {
+      const isValidExceptOr = Array.isArray(config.exceptOr) && config.exceptOr.length > 0;
+      const isValidExceptAnd = Array.isArray(config.exceptAnd) && config.exceptAnd.length > 0;
+      const isExceptOr = config.exceptOr?.some(ex => ex) || false;
+      const isExceptAnd = config.exceptAnd?.every(ex => ex) || false;
 
-    if (isBothException || isAndOrException) {
+      if (isValidExceptOr && isValidExceptAnd) return isExceptOr && isExceptAnd;
+      if (isValidExceptOr) return isExceptOr;
+      if (isValidExceptAnd) return isExceptAnd;
+
+      return false;
+    }, []);
+
+    if (!hasException()) {
       if (isLoading) return <Loading />;
       if (status === 401) return <Unauthorized />;
       if (status === 500) return <InternalError />;
