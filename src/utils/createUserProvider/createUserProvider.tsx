@@ -1,15 +1,14 @@
 import React, { createContext, useContext } from 'react';
 import { HttpClient } from '../../interfaces/Record';
 import cookies from '../cookies/cookies';
+import client from '../http/http';
 import login, { LoginProvider } from '../login/login';
 import { DefaultUser, UserProviderConfig, UserProviderFactory, UserObject } from './types';
-import { useConfig, useHttpClient, useInitialUser } from './utils';
+import { useConfig, useInitialUser } from './utils';
 
-// TODO: update user based on deps
 function createUserProvider<TUser extends DefaultUser = DefaultUser>(
   config: UserProviderConfig<TUser>
 ): UserProviderFactory<TUser> {
-  const { client, interceptors } = useHttpClient();
   const UserContext = createContext<UserObject<TUser> | null>(null);
   const UserProvider: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => {
     const { initialUserConfig, httpClientConfig, keys, extractUrl } = useConfig(config);
@@ -52,11 +51,7 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>(
     return context;
   };
 
-  return {
-    UserProvider,
-    useUser,
-    interceptors,
-  };
+  return { UserProvider, useUser };
 }
 
 export default createUserProvider;
