@@ -1,10 +1,8 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-import { useMemo, useCallback, useState, useEffect, DependencyList } from 'react';
-import { useCookie } from '../../hooks';
+import React, { useMemo, useCallback, useState, useEffect, DependencyList } from 'react';
 import { HttpClient } from '../../interfaces/Record';
 import cookies from '../cookies/cookies';
 import { Provider } from '../login/login';
-import { DefaultUser, Interceptors, UserProviderConfig, UserProviderMode } from './types';
+import { DefaultUser, UserProviderConfig, UserProviderMode } from './types';
 
 export function useConfig<TUser extends DefaultUser = DefaultUser>(
   config: UserProviderConfig<TUser>
@@ -51,45 +49,6 @@ export function useInitialUser<TUser extends DefaultUser = DefaultUser>(
   return [user, setUser];
 }
 
-export function useHttpClient(authKey: string = 'authorization', config?: AxiosRequestConfig): UseHttpClient {
-  const client = useMemo(() => axios.create(config), []);
-  const { cookie, set } = useCookie<string>(authKey);
-  const interceptors: Interceptors = useMemo(() => {
-    return {
-      request: {
-        onFulfilled: (config: InternalAxiosRequestConfig<unknown>): InternalAxiosRequestConfig<unknown> => {
-          if (typeof window === 'undefined') return config;
-          if (!!cookie) config.headers.setAuthorization(`Bearer ${cookie}`);
-          return { ...config, withCredentials: true };
-        },
-      },
-      response: {
-        onFulfilled: (response: AxiosResponse<unknown, unknown>): AxiosResponse<unknown, unknown> => {
-          if (typeof window === 'undefined') return response;
-          const value = response.headers[authKey.toLowerCase()]?.split(' ')?.pop();
-          if (value) set(value, 365 * 150);
-          return response;
-        },
-      },
-    };
-  }, []);
-
-  useEffect(() => {
-    client.interceptors.request.use(
-      interceptors.request.onFulfilled,
-      interceptors.request.onRejected,
-      interceptors.request.options
-    );
-    client.interceptors.response.use(
-      interceptors.response.onFulfilled,
-      interceptors.response.onRejected,
-      interceptors.response.options
-    );
-  }, []);
-
-  return { client, interceptors };
-}
-
 type UseConfigResult<TUser extends DefaultUser = DefaultUser> = {
   keys: {
     dataKey: string;
@@ -104,8 +63,3 @@ type UseInitialUserResult<TUser extends DefaultUser = DefaultUser> = [
   TUser | null,
   React.Dispatch<React.SetStateAction<TUser | null>>
 ];
-
-type UseHttpClient = {
-  client: AxiosInstance;
-  interceptors: Interceptors;
-};

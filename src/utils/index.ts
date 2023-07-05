@@ -9,6 +9,7 @@ export {
   UserProviderMode,
   UserProviderUrls,
 } from './createUserProvider/types';
+export { default as http } from './http/http';
 export {
   default as login,
   isLocalCredentials,

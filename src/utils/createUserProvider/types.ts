@@ -1,4 +1,3 @@
-import { AxiosInterceptorManager, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import { DatabaseRecord, HttpClient } from '../../interfaces/Record';
 import { LoginProvider, LoginKeys } from '../login/login';
 
@@ -28,16 +27,4 @@ export type UserProviderMode<TUser extends DefaultUser = DefaultUser> =
 export type UserProviderFactory<TUser extends DefaultUser = DefaultUser> = {
   UserProvider: React.FC<React.PropsWithChildren<unknown>>;
   useUser: () => UserObject<TUser>;
-  interceptors: Interceptors;
-};
-
-export type Interceptors = {
-  request: RequestInterceptor<InternalAxiosRequestConfig>;
-  response: RequestInterceptor<AxiosResponse>;
-};
-type InterceptorArguments<TData = unknown> = Parameters<AxiosInterceptorManager<TData>['use']>;
-type RequestInterceptor<TData = unknown> = {
-  onFulfilled?: InterceptorArguments<TData>[0];
-  onRejected?: InterceptorArguments<TData>[1];
-  options?: InterceptorArguments<TData>[2];
 };
