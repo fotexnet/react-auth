@@ -28,9 +28,7 @@ export type UserProviderMode<TUser extends DefaultUser = DefaultUser> =
 export type UserProviderFactory<TUser extends DefaultUser = DefaultUser> = {
   UserProvider: React.FC<React.PropsWithChildren<unknown>>;
   useUser: () => UserObject<TUser>;
-  meta: {
-    interceptors: Interceptors;
-  };
+  interceptors: Interceptors;
 };
 
 export type Interceptors = {
