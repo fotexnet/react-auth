@@ -27,9 +27,10 @@ function withAuthGuard<T extends object>(Component: React.ComponentType<T>, conf
       const controller = new AbortController();
       const name = config.authKey || 'authorization';
       const conf = (config.httpConfig || {}) as AxiosRequestConfig<unknown>;
+      const token = `Bearer ${cookies.get(name)}`;
 
-      if (conf.headers) conf.headers[name] = cookies.get(name);
-      else conf.headers = { [name]: cookies.get(name) };
+      if (conf.headers) conf.headers[name] = token;
+      else conf.headers = { [name]: token };
       conf.signal = controller.signal;
 
       client
