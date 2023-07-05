@@ -20,8 +20,8 @@ function withAuthGuard<T extends object>(Component: React.ComponentType<T>, conf
   // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
   return function AuthGuard(props) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [status, setStatus] = useState<number>(200);
-    const Fallback = useErrorHook(status);
+    const [status, setStatus] = useState<number>();
+    const Fallback = useErrorHook(status || 500);
 
     useEffect(() => {
       const controller = new AbortController();
