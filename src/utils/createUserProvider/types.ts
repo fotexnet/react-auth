@@ -1,17 +1,17 @@
 import { AxiosInterceptorManager, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
-import { HttpClient } from '../../interfaces/Record';
+import { DatabaseRecord, HttpClient } from '../../interfaces/Record';
 import { LoginProvider, LoginKeys } from '../login/login';
 
-export type User = { id: number; email: string } & Record<string, unknown>;
+export type DefaultUser = { email: string } & DatabaseRecord;
 
-export type UserObject<TUser extends User = User> = {
+export type UserObject<TUser extends DefaultUser = DefaultUser> = {
   user: TUser | null;
   update: (user: Partial<TUser>) => void;
   login: (config: LoginProvider & HttpClient) => Promise<TUser>;
   logout: (config?: HttpClient) => Promise<void>;
 };
 
-export type UserProviderConfig<TUser extends User = User> = UserProviderUrls &
+export type UserProviderConfig<TUser extends DefaultUser = DefaultUser> = UserProviderUrls &
   UserProviderMode<TUser> &
   LoginKeys &
   HttpClient;
@@ -21,11 +21,11 @@ export type UserProviderUrls = { logoutUrl: string } & (
   | { loginUrl: { local: string; social: string }; localOnly: false }
 );
 
-export type UserProviderMode<TUser extends User = User> =
+export type UserProviderMode<TUser extends DefaultUser = DefaultUser> =
   | { mode: 'storage'; key: string; storage?: 'localStorage' | 'sessionStorage' | 'cookie' }
   | { mode: 'fetch'; useProfile: (http: HttpClient) => TUser | null };
 
-export type UserProviderFactory<TUser extends User = User> = {
+export type UserProviderFactory<TUser extends DefaultUser = DefaultUser> = {
   UserProvider: React.FC<React.PropsWithChildren<unknown>>;
   useUser: () => UserObject<TUser>;
   meta: {
