@@ -41,10 +41,14 @@ export function useInitialUser<TUser extends DefaultUser = DefaultUser>(
   const [user, setUser] = useState<TUser | null>(profile);
 
   useEffect(() => {
-    if (config.mode === 'fetch') return;
+    if (config.mode === 'fetch') {
+      setUser(profile);
+      return;
+    }
+
     const storage = config.storage || 'cookie';
     setUser(parseInitialUser(storage === 'cookie' ? cookies.get(config.key) : window[storage].getItem(config.key)));
-  }, dependencies);
+  }, [profile, ...dependencies]);
 
   return [user, setUser];
 }
