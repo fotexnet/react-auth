@@ -7,7 +7,7 @@ import { LoginKeys } from '../../utils/login/login';
 export type AuthGuardConfig = {
   url: string;
   useException?: () => boolean;
-  useError?: (status: number) => JSX.Element | null;
+  useError?: (status: number | null) => JSX.Element | null;
   LoadingIndicatorComponent?: React.ComponentType;
 } & Pick<LoginKeys, 'authKey'> &
   HttpClient;
@@ -15,14 +15,14 @@ export type AuthGuardConfig = {
 function withAuthGuard<T extends object>(Component: React.ComponentType<T>, config: AuthGuardConfig): React.FC<T> {
   const client = config.httpClient || axios;
   const useExceptionHook = config.useException ? config.useException : () => false;
-  const useErrorHook = config.useError ? config.useError : (_: number) => null;
+  const useErrorHook = config.useError ? config.useError : (_: number | null) => null;
 
   // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
   return function AuthGuard(props) {
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [status, setStatus] = useState<number>();
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [status, setStatus] = useState<number | null>(null);
     const hasException = useExceptionHook();
-    const Fallback = useErrorHook(status || 500);
+    const Fallback = useErrorHook(status);
 
     useEffect(() => {
       const controller = new AbortController();
