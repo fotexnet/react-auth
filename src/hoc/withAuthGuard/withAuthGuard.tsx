@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig, isAxiosError } from 'axios';
 import React, { useCallback, useEffect, useState } from 'react';
 import { HttpClient } from '../../interfaces/Record';
 import cookies from '../../utils/cookies/cookies';
@@ -39,11 +39,19 @@ function withAuthGuard<T extends object>(Component: React.ComponentType<T>, conf
       else conf.headers = { [name]: token };
       conf.signal = controller.signal;
 
-      client
-        .get(config.url, conf)
-        .then(response => setStatus(response.status))
-        .catch(err => setStatus(err.response?.status || 500))
-        .finally(() => setIsLoading(false));
+      const fetchUser = async () => {
+        setIsLoading(true);
+        try {
+          const { status: s } = await client.get(config.url, conf);
+          setStatus(s);
+        } catch (err) {
+          if (isAxiosError(err)) setStatus(err.response?.status || 500);
+          else setStatus(500);
+        }
+        setIsLoading(false);
+      };
+
+      fetchUser();
 
       return () => {
         controller.abort();
@@ -67,8 +75,9 @@ function withAuthGuard<T extends object>(Component: React.ComponentType<T>, conf
     const Fallback500 = useCallback(() => <div data-testid="auth-error-500">500</div>, []);
     const InternalError = useCallback(() => (!!errorResult.Component ? errorResult.Component : <Fallback500 />), []);
 
+    if (isLoading) return <Loading />;
+
     if (!hasException) {
-      if (isLoading) return <Loading />;
       if (status === 401) return <Unauthorized />;
       if (status === 500) return <InternalError />;
     }
