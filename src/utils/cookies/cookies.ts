@@ -42,7 +42,7 @@ function setCookie(cname: string, cvalue: unknown, exdays: number): void {
   const name = createCookieName(cname);
   const value = typeof cvalue === 'string' ? cvalue : JSON.stringify(cvalue);
   date.setTime(date.getTime() + exdays * 24 * 60 * 60 * 1000);
-  const expires = 'expires=' + date.toISOString();
+  const expires = 'expires=' + date.toUTCString();
   document.cookie = name + '=' + value + ';' + expires + ';path=/';
 }
 
