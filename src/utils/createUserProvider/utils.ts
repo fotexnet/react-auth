@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useState, useEffect, DependencyList } from 'react';
+import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { HttpClient } from '../../interfaces/Record';
 import cookies from '../cookies/cookies';
 import { Provider } from '../login/login';
@@ -25,19 +25,14 @@ export function useConfig<TUser extends DefaultUser = DefaultUser>(
 
 // TODO: set user if mode set to storage (?)
 export function useInitialUser<TUser extends DefaultUser = DefaultUser>(
-  config: UserProviderMode<TUser> & HttpClient,
-  dependencies: DependencyList = []
+  config: UserProviderMode<TUser> & HttpClient
 ): UseInitialUserResult<TUser> {
   const parseInitialUser = useCallback((str?: string | null) => {
     return JSON.parse(str || 'null') as TUser | null;
   }, []);
 
-  const getProfileFn = useCallback(() => {
-    return config.mode === 'fetch' ? config.useProfile : (_: HttpClient) => null;
-  }, dependencies);
-
-  const useProfile = getProfileFn();
-  const profile = useProfile({ httpClient: config.httpClient, httpConfig: config.httpConfig });
+  const useProfileHook = useCallback(config.mode === 'fetch' ? config.useProfile : (_: HttpClient) => null, []);
+  const profile = useProfileHook({ httpClient: config.httpClient, httpConfig: config.httpConfig });
   const [user, setUser] = useState<TUser | null>(profile);
 
   useEffect(() => {
@@ -48,7 +43,7 @@ export function useInitialUser<TUser extends DefaultUser = DefaultUser>(
 
     const storage = config.storage || 'cookie';
     setUser(parseInitialUser(storage === 'cookie' ? cookies.get(config.key) : window[storage].getItem(config.key)));
-  }, [profile, ...dependencies]);
+  }, [profile]);
 
   return [user, setUser];
 }
