@@ -1,5 +1,5 @@
-import { DatabaseRecord, HttpClient } from '../../interfaces/Record';
-import { LoginProvider, LoginKeys } from '../login/login';
+import { DatabaseRecord, HttpClient, Prettify } from '../../interfaces/Record';
+import { LoginProvider, LoginKeys } from '../../utils/login/login';
 
 export type DefaultUser = { email: string } & DatabaseRecord;
 
@@ -10,21 +10,24 @@ export type UserObject<TUser extends DefaultUser = DefaultUser> = {
   logout: (config?: HttpClient) => Promise<void>;
 };
 
-export type UserProviderConfig<TUser extends DefaultUser = DefaultUser> = UserProviderUrls &
-  UserProviderMode<TUser> &
-  LoginKeys &
-  HttpClient;
+export type UserProviderConfig<TUser extends DefaultUser = DefaultUser> = Prettify<
+  { useProfile: () => TUser | null } & UserProviderUrls & LoginKeys & HttpClient
+>;
 
 export type UserProviderUrls = { logoutUrl: string } & (
   | { loginUrl: string; localOnly: true }
   | { loginUrl: { local: string; social: string }; localOnly: false }
 );
 
-export type UserProviderMode<TUser extends DefaultUser = DefaultUser> =
-  | { mode: 'storage'; key: string; storage?: 'localStorage' | 'sessionStorage' | 'cookie' }
-  | { mode: 'fetch'; useProfile: (http: HttpClient) => TUser | null };
-
 export type UserProviderFactory<TUser extends DefaultUser = DefaultUser> = {
   UserProvider: React.FC<React.PropsWithChildren<unknown>>;
   useUser: () => UserObject<TUser>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  withAuthGuard: (Component: React.ComponentType<any>, config: AuthGuardConfig) => React.FC<any>;
+};
+
+export type AuthGuardConfig = {
+  useRedirect: () => () => void;
+  useException?: () => boolean;
+  acceptRoles?: string[];
 };
