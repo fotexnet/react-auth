@@ -9,12 +9,10 @@ import { DefaultUser, UserProviderConfig, UserProviderFactory, UserObject, AuthG
 function createUserProvider<TUser extends DefaultUser = DefaultUser>({
   authKey = 'authorization',
   dataKey,
-  loginUrl,
-  logoutUrl,
-  localOnly,
   httpClient,
   httpConfig,
   useProfile,
+  ...config
 }: UserProviderConfig<TUser>): UserProviderFactory<TUser> {
   const UserContext = createContext<UserObject<TUser> | null>(null);
   const UserProvider: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => {
@@ -26,7 +24,7 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
     }, []);
 
     const extractUrl = useCallback((provider: Provider) => {
-      return localOnly ? loginUrl : provider === 'local' ? loginUrl.local : loginUrl.social;
+      return config.localOnly ? config.loginUrl : provider === 'local' ? config.loginUrl.local : config.loginUrl.social;
     }, []);
 
     useEffect(() => {
@@ -66,7 +64,7 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
             const hClient = _http?.httpClient || httpClient || client;
             const hConfig = (_http?.httpConfig || httpConfig || {}) as AxiosRequestConfig;
             hConfig.withCredentials = true;
-            await hClient.post(logoutUrl, undefined, hConfig);
+            await hClient.post(config.logoutUrl, undefined, hConfig);
             setUser(null);
             cookies.delete(dataKey);
             cookies.delete(authKey);
