@@ -1,4 +1,4 @@
 // export everything here..
-export * from './hoc';
 export * from './hooks';
+export * from './providers';
 export * from './utils';
