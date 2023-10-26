@@ -1,9 +1,9 @@
-import { AxiosRequestConfig } from 'axios';
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { HttpClient } from '../../interfaces/Record';
-import cookies from '../../utils/cookies/cookies';
+import { AxiosRequestConfig, isAxiosError } from 'axios';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { HttpClient, Prettify } from '../../interfaces/Record';
+import cookies, { parseCookie } from '../../utils/cookies/cookies';
 import client from '../../utils/createHttpClient/createHttpClient';
-import login, { LoginProvider, Provider } from '../../utils/login/login';
+import login, { AuthResponse, LoginProvider, Provider } from '../../utils/login/login';
 import { DefaultUser, UserProviderConfig, UserProviderFactory, UserObject, AuthGuardConfig } from './types';
 
 function createUserProvider<TUser extends DefaultUser = DefaultUser>({
@@ -11,31 +11,49 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
   dataKey,
   httpClient,
   httpConfig,
-  useProfile,
+  profileUrl,
+  profileUpdateInterval = 300,
   ...config
-}: UserProviderConfig<TUser>): UserProviderFactory<TUser> {
+}: UserProviderConfig): UserProviderFactory<TUser> {
   const UserContext = createContext<UserObject<TUser> | null>(null);
   const UserProvider: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => {
-    const profile = useProfile();
-    const [user, setUser] = useState<TUser | null>(profile);
+    const http = useMemo(() => httpClient || client, [httpClient]);
+    const [user, setUser] = useState<TUser | null | undefined>(undefined);
 
-    const parseInitialUser = useCallback((str?: string | null) => {
-      return JSON.parse(str || 'null') as TUser | null;
-    }, []);
-
-    const extractUrl = useCallback((provider: Provider) => {
+    const extractLoginUrl = useCallback((provider: Provider) => {
       return config.localOnly ? config.loginUrl : provider === 'local' ? config.loginUrl.local : config.loginUrl.social;
     }, []);
 
     useEffect(() => {
-      setUser(parseInitialUser(cookies.get(dataKey)));
-    }, []);
+      const token = parseCookie<string>(cookies.get(authKey));
+      if (!token) return;
 
-    useEffect(() => {
-      if (!profile) return;
-      cookies.set(dataKey, JSON.stringify(profile), 365);
-      setUser(profile);
-    }, [profile]);
+      const cachedUser = parseCookie<TUser>(cookies.get(dataKey)) || undefined;
+      setUser(cachedUser);
+
+      const fetchProfile = async () => {
+        const { data } = await http.get<AuthResponse<TUser>>(profileUrl, {
+          headers: { Authorization: `Bearer ${token}`, ...httpConfig?.headers },
+          withCredentials: true,
+          ...httpConfig,
+        });
+        cookies.set(dataKey, JSON.stringify(data.data[dataKey]), 365);
+        setUser(data.data[dataKey]);
+      };
+
+      const interval = setInterval(() => {
+        try {
+          fetchProfile();
+        } catch (err) {
+          if (isAxiosError(err) && err.status === 401) setUser(null);
+          else setUser(cachedUser);
+        }
+      }, profileUpdateInterval * 1000);
+
+      return () => {
+        clearInterval(interval);
+      };
+    }, []);
 
     return (
       <UserContext.Provider
@@ -44,10 +62,14 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
           update: (data: Partial<TUser>) => {
             setUser(prev => ({ ...prev, ...data } as TUser));
           },
-          login: async ({ httpClient: hClient, httpConfig: hConfig, ...provider }: LoginProvider & HttpClient) => {
-            const apiUrl: string = extractUrl(provider.provider);
+          login: async ({
+            httpClient: hClient,
+            httpConfig: hConfig,
+            ...provider
+          }: Prettify<LoginProvider & HttpClient>) => {
+            const url: string = extractLoginUrl(provider.provider);
             const httpObj: HttpClient = {
-              httpClient: hClient || httpClient || client,
+              httpClient: hClient || http,
               httpConfig: hConfig || httpConfig,
             };
             const user = await login<TUser>({
@@ -55,19 +77,22 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
               ...httpObj,
               dataKey,
               authKey,
-              apiUrl,
+              apiUrl: url,
             });
             setUser(user);
             return user;
           },
           logout: async (_http?: HttpClient) => {
-            const hClient = _http?.httpClient || httpClient || client;
+            const hClient = _http?.httpClient || http;
             const hConfig = (_http?.httpConfig || httpConfig || {}) as AxiosRequestConfig;
             hConfig.withCredentials = true;
-            await hClient.post(config.logoutUrl, undefined, hConfig);
-            setUser(null);
-            cookies.delete(dataKey);
-            cookies.delete(authKey);
+            try {
+              await hClient.post(config.logoutUrl, undefined, hConfig);
+            } finally {
+              cookies.delete(dataKey);
+              cookies.delete(authKey);
+              setUser(null);
+            }
           },
         }}
       >
@@ -95,15 +120,17 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
 
       // TODO: include 'acceptRoles' in condition
       useEffect(() => {
-        if (!user) setStatus(401);
-        else setStatus(200);
+        if (!!user) setStatus(200);
+        else if (user === null) setStatus(401);
+        else setStatus(null);
+
         return () => {
           setStatus(null);
         };
       }, [user]);
 
       useEffect(() => {
-        if (!hasException && ![200, null].includes(status)) {
+        if (!hasException && status === 401) {
           redirect();
         }
       }, [hasException, redirect, status]);
