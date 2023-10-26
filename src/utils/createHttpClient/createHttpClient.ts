@@ -17,7 +17,7 @@ export function createHttpClient(authKey: string = 'authorization', config?: Axi
     client.interceptors.response.use(
       (response: AxiosResponse<unknown, unknown>): AxiosResponse<unknown, unknown> => {
         const value = response.headers[authKey.toLowerCase()]?.split(' ')?.pop();
-        if (value) cookies.set(authKey, value, 365 * 150);
+        if (value) cookies.set(authKey, value, 365);
         return response;
       }
     );

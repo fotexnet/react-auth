@@ -4,17 +4,17 @@ import { LoginProvider, LoginKeys } from '../../utils/login/login';
 export type DefaultUser = { email: string } & DatabaseRecord;
 
 export type UserObject<TUser extends DefaultUser = DefaultUser> = {
-  user: TUser | null;
+  user: TUser | null | undefined;
   update: (user: Partial<TUser>) => void;
   login: (config: LoginProvider & HttpClient) => Promise<TUser>;
   logout: (config?: HttpClient) => Promise<void>;
 };
 
-export type UserProviderConfig<TUser extends DefaultUser = DefaultUser> = Prettify<
-  { useProfile: () => TUser | null } & UserProviderUrls & LoginKeys & HttpClient
+export type UserProviderConfig = Prettify<
+  { profileUpdateInterval?: number } & UserProviderUrls & LoginKeys & HttpClient
 >;
 
-export type UserProviderUrls = { logoutUrl: string } & (
+export type UserProviderUrls = { profileUrl: string; logoutUrl: string } & (
   | { loginUrl: string; localOnly: true }
   | { loginUrl: { local: string; social: string }; localOnly: false }
 );

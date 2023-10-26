@@ -6,9 +6,9 @@ import cookies from '../cookies/cookies';
 type LocalProvider = 'local';
 type SocialProvider = 'google' | 'facebook';
 type SocialPayload = Prettify<SocialCredentials & { social_provider: string }>;
-type AuthResponse<TUser extends DatabaseRecord> = IResponse<{ [x: string]: TUser }>;
 
-export type AuthenticatedUser<TProps extends DatabaseRecord> = { token: string } & TProps;
+export type AuthResponse<TUser extends DatabaseRecord> = IResponse<{ [x: string]: TUser }>;
+export type AuthenticatedUser<TUser extends DatabaseRecord> = { token: string } & TUser;
 
 export type Credentials = Prettify<LocalCredentials | SocialCredentials>;
 export type LocalCredentials = { email: string; password: string };
