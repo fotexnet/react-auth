@@ -32,13 +32,14 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
       setUser(cachedUser);
 
       const fetchProfile = async () => {
-        const { data } = await http.get<AuthResponse<TUser>>(profileUrl, {
+        const conf = {
           headers: { Authorization: `Bearer ${token}`, ...httpConfig?.headers },
           withCredentials: true,
           ...httpConfig,
-        });
-        cookies.set(dataKey, JSON.stringify(data.data[dataKey]), 365);
-        setUser(data.data[dataKey]);
+        } as AxiosRequestConfig<unknown>;
+        const response = await http.get<AuthResponse<TUser>>(profileUrl, conf);
+        cookies.set(dataKey, JSON.stringify(response.data.data[dataKey]), 365);
+        setUser(response.data.data[dataKey]);
       };
 
       const interval = setInterval(() => {
