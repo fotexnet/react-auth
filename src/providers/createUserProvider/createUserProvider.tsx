@@ -56,6 +56,12 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
       };
     }, []);
 
+    useEffect(() => {
+      if (user) return;
+      cookies.delete(authKey);
+      cookies.delete(dataKey);
+    }, [user]);
+
     return (
       <UserContext.Provider
         value={{

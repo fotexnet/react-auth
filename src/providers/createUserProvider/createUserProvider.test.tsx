@@ -31,6 +31,7 @@ describe('createUserProvider', () => {
     loginUrl: 'your_api_goes_here',
     logoutUrl: 'your_api_goes_here',
     localOnly: true,
+    profileUrl: 'your_api_url',
   };
 
   beforeEach(() => {
@@ -47,10 +48,8 @@ describe('createUserProvider', () => {
     const userData: User = { id: 1, email: 'test@test.com' };
 
     beforeEach(() => {
-      const mockFetch: jest.Mock<User> = jest.fn();
       factory = createUserProvider<User>({
         ...providerOptions,
-        useProfile: mockFetch.mockImplementation(() => userData),
       });
     });
 
