@@ -63,17 +63,17 @@ describe('isLocalCredential type guard', () => {
   });
 
   it('should return true for subset match', () => {
-    const isLocal = isLocalCredentials(({ id: 0, name: '', email: '', password: '' } as unknown) as Credentials);
+    const isLocal = isLocalCredentials({ id: 0, name: '', email: '', password: '' } as unknown as Credentials);
     expect(isLocal).toBeTruthy();
   });
 
   it('should return false for missing arguments', () => {
-    const isLocal = isLocalCredentials(({ email: '' } as unknown) as Credentials);
+    const isLocal = isLocalCredentials({ email: '' } as unknown as Credentials);
     expect(isLocal).toBeFalsy();
   });
 
   it('should return false for different arguments', () => {
-    const isLocal = isLocalCredentials(({ name: '' } as unknown) as Credentials);
+    const isLocal = isLocalCredentials({ name: '' } as unknown as Credentials);
     expect(isLocal).toBeFalsy();
   });
 });
@@ -85,17 +85,17 @@ describe('isSocialCredentials type guard', () => {
   });
 
   it('should return true for subset match', () => {
-    const isSocial = isSocialCredentials(({ id: 0, name: '', social_token: '' } as unknown) as Credentials);
+    const isSocial = isSocialCredentials({ id: 0, name: '', social_token: '' } as unknown as Credentials);
     expect(isSocial).toBeTruthy();
   });
 
   it('should return false for missing arguments', () => {
-    const isSocial = isSocialCredentials(({} as unknown) as Credentials);
+    const isSocial = isSocialCredentials({} as unknown as Credentials);
     expect(isSocial).toBeFalsy();
   });
 
   it('should return false for different arguments', () => {
-    const isSocial = isSocialCredentials(({ name: '' } as unknown) as Credentials);
+    const isSocial = isSocialCredentials({ name: '' } as unknown as Credentials);
     expect(isSocial).toBeFalsy();
   });
 });
