@@ -3,9 +3,11 @@ const commonjs = require('@rollup/plugin-commonjs');
 const json = require('@rollup/plugin-json');
 const typescript = require('@rollup/plugin-typescript');
 const { dts } = require('rollup-plugin-dts');
+const postcss = require('rollup-plugin-postcss');
 
 const packageJson = require('./package.json');
 
+// /** @type {import('rollup').RollupOptions} */
 module.exports = [
   {
     input: 'src/index.ts',
@@ -24,14 +26,18 @@ module.exports = [
     plugins: [
       resolve(),
       commonjs(),
-      typescript({ tsconfig: './tsconfig.json' }),
+      typescript({
+        tsconfig: './tsconfig.json',
+        exclude: ['**/*.test.ts', '**/*.test.tsx'],
+      }),
       json(),
-      // postcss()
+      postcss(),
     ],
   },
   {
     input: 'dist/esm/types/index.d.ts',
     output: [{ file: 'dist/index.d.ts', format: 'esm' }],
+    external: [/\.css$/],
     plugins: [dts()],
   },
 ];
