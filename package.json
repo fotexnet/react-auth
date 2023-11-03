@@ -4,7 +4,7 @@
   "description": "",
   "author": "Nagy Viktor",
   "license": "MIT",
-  "main": "dist/cjs/index.js",
+  "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",
@@ -32,7 +32,7 @@
     "build-storybook": "storybook build",
     "semantic-release": "semantic-release --branches main"
   },
-  "module": "dist/esm/index.js",
+  "module": "dist/index.js",
   "peerDependencies": {
     "react": ">=17",
     "react-dom": ">=17"
