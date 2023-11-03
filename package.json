@@ -27,7 +27,7 @@
     "build": "rm -rf dist && rollup -c",
     "test": "jest",
     "lint": "eslint src",
-    "prepare": "husky install",
+    "prepare": "husky install && yarn build",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "semantic-release": "semantic-release --branches main"
