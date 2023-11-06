@@ -4,7 +4,6 @@ const json = require('@rollup/plugin-json');
 const typescript = require('@rollup/plugin-typescript');
 const { dts } = require('rollup-plugin-dts');
 const postcss = require('rollup-plugin-postcss');
-const polyfills = require('rollup-plugin-polyfill-node');
 
 const packageJson = require('./package.json');
 const builtins = ['http', 'https', 'zlib', 'stream', 'path', 'fs', 'tty', 'os', 'util'];
@@ -27,9 +26,12 @@ module.exports = [
     ],
     external: builtins,
     plugins: [
-      resolve({ preferBuiltins: false }),
+      resolve({
+        browser: true,
+        preferBuiltins: false,
+        exportConditions: ['browser', 'default', 'module', 'require'],
+      }),
       commonjs(),
-      polyfills({ include: builtins, sourceMap: true }),
       typescript({
         tsconfig: './tsconfig.json',
         exclude: ['**/*.test.ts', '**/*.test.tsx'],
