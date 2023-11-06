@@ -4,10 +4,12 @@ const json = require('@rollup/plugin-json');
 const typescript = require('@rollup/plugin-typescript');
 const { dts } = require('rollup-plugin-dts');
 const postcss = require('rollup-plugin-postcss');
+const polyfills = require('rollup-plugin-polyfill-node');
 
 const packageJson = require('./package.json');
+const builtins = ['http', 'https', 'zlib', 'stream', 'path', 'fs', 'tty', 'os', 'util'];
 
-// /** @type {import('rollup').RollupOptions} */
+/** @type {import('rollup').RollupOptions} */
 module.exports = [
   {
     input: 'src/index.ts',
@@ -23,9 +25,11 @@ module.exports = [
         sourcemap: true,
       },
     ],
+    external: builtins,
     plugins: [
-      resolve(),
+      resolve({ preferBuiltins: false }),
       commonjs(),
+      polyfills({ include: builtins, sourceMap: true }),
       typescript({
         tsconfig: './tsconfig.json',
         exclude: ['**/*.test.ts', '**/*.test.tsx'],
