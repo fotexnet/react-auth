@@ -24,7 +24,7 @@ module.exports = [
         sourcemap: true,
       },
     ],
-    external: builtins,
+    external: [...builtins, 'react', 'react-dom'],
     plugins: [
       resolve({
         browser: true,
