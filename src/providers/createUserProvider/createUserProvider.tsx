@@ -56,11 +56,12 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
       };
     }, []);
 
-    useEffect(() => {
-      if (user) return;
-      cookies.delete(authKey);
-      cookies.delete(dataKey);
-    }, [user]);
+    //I think this code cause the issue with sessions
+    // useEffect(() => {
+    //   if (user) return;
+    //   cookies.delete(authKey);
+    //   cookies.delete(dataKey);
+    // }, []);
 
     return (
       <UserContext.Provider
