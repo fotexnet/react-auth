@@ -5,20 +5,24 @@ import cookies, { parseCookie } from '../../utils/cookies/cookies';
 import client from '../../utils/createHttpClient/createHttpClient';
 import login, { AuthResponse, LoginProvider, Provider } from '../../utils/login/login';
 import { DefaultUser, UserProviderConfig, UserProviderFactory, UserObject, AuthGuardConfig } from './types';
+import { parseJwt } from '../../utils/parseJwt/parseJwt';
+import { hasExpired } from '../../utils/hasExpired/hasExpired';
 
 function createUserProvider<TUser extends DefaultUser = DefaultUser>({
-  authKey = 'authorization',
-  dataKey,
-  httpClient,
-  httpConfig,
-  profileUrl,
-  profileUpdateInterval = 300,
-  ...config
-}: UserProviderConfig): UserProviderFactory<TUser> {
+                                                                       authKey = 'authorization',
+                                                                       dataKey,
+                                                                       httpClient,
+                                                                       httpConfig,
+                                                                       profileUrl,
+                                                                       profileUpdateInterval = 300,
+                                                                       ...config
+                                                                     }: UserProviderConfig): UserProviderFactory<TUser> {
   const UserContext = createContext<UserObject<TUser> | null>(null);
   const UserProvider: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => {
     const http = useMemo(() => httpClient || client, [httpClient]);
     const [user, setUser] = useState<TUser | null | undefined>(undefined);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(true);
 
     const extractLoginUrl = useCallback((provider: Provider) => {
       return config.localOnly ? config.loginUrl : provider === 'local' ? config.loginUrl.local : config.loginUrl.social;
@@ -26,55 +30,64 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
 
     useEffect(() => {
       const token = parseCookie<string>(cookies.get(authKey));
-      if (!token) return;
-
       const cachedUser = parseCookie<TUser>(cookies.get(dataKey)) || undefined;
-      setUser(cachedUser);
 
+      if (!token || !cachedUser) {
+        cookies.delete(authKey);
+        cookies.delete(dataKey);
+        setLoading(false)
+        return;
+      }
+
+      const { exp } = parseJwt(token);
+
+      const isExpired = hasExpired(exp);
       const fetchProfile = async () => {
         const conf = {
-          headers: { Authorization: `Bearer ${token}`, ...httpConfig?.headers },
+          headers: { Authorization: `Bearer ${token}`, ...httpConfig?.headers, TokenRefresh: 1 },
           withCredentials: true,
           ...httpConfig,
         } as AxiosRequestConfig<unknown>;
-        const response = await http.get<AuthResponse<TUser>>(profileUrl, conf);
-        cookies.set(dataKey, JSON.stringify(response.data.data[dataKey]), 365);
-        setUser(response.data.data[dataKey]);
-      };
-
-      const interval = setInterval(() => {
         try {
-          fetchProfile();
-        } catch (err) {
-          if (isAxiosError(err) && err.status === 401) setUser(null);
-          else setUser(cachedUser);
+          setIsLoading(true)
+          const response = await http.get<AuthResponse<TUser>>(profileUrl, conf);
+          if(response){
+            const newToken = response.headers[authKey.toLowerCase()]?.split(' ')?.pop()
+            if (newToken) cookies.set(authKey, newToken, 365);
+          }
+        } catch (err: any) {
+          if (isAxiosError(err) && err?.response?.status === 401) {
+            cookies.delete(authKey);
+            cookies.delete(dataKey);
+            setUser(null);
+          }
+        } finally {
+          setIsLoading(false)
         }
-      }, profileUpdateInterval * 1000);
-
-      return () => {
-        clearInterval(interval);
       };
-    }, []);
 
-    //I think this code cause the issue with sessions
-    // useEffect(() => {
-    //   if (user) return;
-    //   cookies.delete(authKey);
-    //   cookies.delete(dataKey);
-    // }, []);
+      if (isExpired && !isLoading) {
+        void fetchProfile();
+      } else {
+        setLoading(false)
+      }
+
+      setUser(cachedUser);
+    }, []);
 
     return (
       <UserContext.Provider
         value={{
           user,
+          loading,
           update: (data: Partial<TUser>) => {
             setUser(prev => ({ ...prev, ...data } as TUser));
           },
           login: async ({
-            httpClient: hClient,
-            httpConfig: hConfig,
-            ...provider
-          }: Prettify<LoginProvider & HttpClient>) => {
+                          httpClient: hClient,
+                          httpConfig: hConfig,
+                          ...provider
+                        }: Prettify<LoginProvider & HttpClient>) => {
             const url: string = extractLoginUrl(provider.provider);
             const httpObj: HttpClient = {
               httpClient: hClient || http,

@@ -17,7 +17,7 @@
   },
   "publishConfig": {},
   "engines": {
-    "node": ">=10",
+    "node": ">=18",
     "npm": "use Yarn!"
   },
   "scripts": {
@@ -28,14 +28,12 @@
     "test": "jest",
     "lint": "eslint src",
     "prepare": "husky install && yarn build",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
     "semantic-release": "semantic-release --branches main"
   },
   "module": "dist/esm/index.js",
   "peerDependencies": {
-    "react": ">=17",
-    "react-dom": ">=17"
+    "react": ">=18",
+    "react-dom": ">=18"
   },
   "dependencies": {
     "axios": "^1.4.0"
@@ -49,30 +47,19 @@
     "@rollup/plugin-json": "^6.0.1",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.5",
-    "@storybook/addon-essentials": "^7.0.6",
-    "@storybook/addon-info": "^5.3.21",
-    "@storybook/addon-interactions": "^7.0.6",
-    "@storybook/addon-links": "^7.0.6",
-    "@storybook/addon-mdx-gfm": "^7.0.6",
-    "@storybook/addons": "^7.0.6",
-    "@storybook/blocks": "^7.0.6",
-    "@storybook/react": "^7.0.6",
-    "@storybook/react-webpack5": "^7.0.6",
-    "@storybook/testing-library": "^0.1.0",
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "12.1.5",
     "@testing-library/react-hooks": "^8.0.1",
     "@testing-library/user-event": "^14.4.3",
     "@types/jest": "^29.5.7",
-    "@types/react": "17.0.14",
-    "@types/react-dom": "17.0.14",
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
     "@typescript-eslint/eslint-plugin": "^5.59.0",
     "@typescript-eslint/parser": "^5.59.0",
     "autoprefixer": "^10.4.14",
     "babel-jest": "^29.7.0",
     "babel-loader": "^9.1.2",
     "commitizen": "^4.3.0",
-    "cssnano": "^6.0.0",
     "cz-conventional-changelog": "^3.3.0",
     "eslint": "^8.38.0",
     "eslint-config-prettier": "^8.8.0",
@@ -87,19 +74,14 @@
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "postcss": "^8.4.22",
-    "react": "17.0.2",
-    "react-dom": "17.0.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "rollup": "^3.0.0",
     "rollup-plugin-dts": "^6.1.0",
     "rollup-plugin-postcss": "^4.0.2",
     "semantic-release": "^21.0.5",
     "size-limit": "^8.2.4",
-    "storybook": "^7.0.6",
     "typescript": "^4.9.5"
-  },
-  "resolutions": {
-    "@types/react": "17.0.14",
-    "@types/react-dom": "17.0.14"
   },
   "config": {
     "commitizen": {
