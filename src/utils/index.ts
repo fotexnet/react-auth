@@ -11,3 +11,5 @@ export {
   LocalCredentials,
   SocialCredentials,
 } from './login/login';
+export {hasExpired as hasExpiredJwt} from "./hasExpired/hasExpired"
+export {parseJwt} from "./parseJwt/parseJwt"
