@@ -23,6 +23,7 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
     const [user, setUser] = useState<TUser | null | undefined>(undefined);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
+    const [reTrigger, setReTrigger] = useState<boolean>(false);
 
     const extractLoginUrl = useCallback((provider: Provider) => {
       return config.localOnly ? config.loginUrl : provider === 'local' ? config.loginUrl.local : config.loginUrl.social;
@@ -42,14 +43,17 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
       const { exp } = parseJwt(token);
 
       const isExpired = hasExpired(exp);
-      const fetchProfile = async () => {
-        const conf = {
-          headers: { Authorization: `Bearer ${token}`, ...httpConfig?.headers, TokenRefresh: 1 },
-          withCredentials: true,
-          ...httpConfig,
-        } as AxiosRequestConfig<unknown>;
+
+      if(!isExpired){
+        setLoading(false)
+      }
+      const fetchToken = async () => {
         try {
           setIsLoading(true)
+          const conf = {
+            headers: { Authorization: `Bearer ${token}`, TokenRefresh: 1 },
+            withCredentials: true,
+          } as AxiosRequestConfig<unknown>;
           const response = await http.get<AuthResponse<TUser>>(profileUrl, conf);
           if(response){
             const newToken = response.headers[authKey.toLowerCase()]?.split(' ')?.pop()
@@ -63,16 +67,41 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
           }
         } finally {
           setIsLoading(false)
+          setLoading(false)
         }
       };
 
       if (isExpired && !isLoading) {
-        void fetchProfile();
-      } else {
-        setLoading(false)
+        void fetchToken();
       }
 
+      setReTrigger(false)
       setUser(cachedUser);
+    }, [reTrigger]);
+
+    useEffect(() => {
+      const checkCookieExpiration = () => {
+        const token = parseCookie<string>(cookies.get(authKey));
+
+        if (token) {
+          const { exp } = parseJwt(token);
+
+          const isExpired = hasExpired(exp);
+
+          if (isExpired) {
+            setReTrigger(true)
+          }
+        }
+      };
+
+      // Initial check when the component mounts
+      checkCookieExpiration();
+
+      // Check the cookie expiration every 5 seconds (adjust as needed)
+      const intervalId = setInterval(checkCookieExpiration, 2500);
+
+      // Clean up the interval when the component unmounts
+      return () => clearInterval(intervalId);
     }, []);
 
     return (
