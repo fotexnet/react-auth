@@ -1,5 +1,7 @@
 import axios, { AxiosRequestConfig, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import cookies from '../cookies/cookies';
+import { parseJwt } from '../parseJwt/parseJwt';
+import { hasExpiredJwt } from '../index';
 
 export function createHttpClient(authKey: string = 'authorization', config?: AxiosRequestConfig): AxiosInstance {
   const client = axios.create(config);
@@ -9,6 +11,10 @@ export function createHttpClient(authKey: string = 'authorization', config?: Axi
 
     client.interceptors.request.use(
       (config: InternalAxiosRequestConfig<unknown>): InternalAxiosRequestConfig<unknown> => {
+        const { exp } = parseJwt(token);
+        const isExpired = hasExpiredJwt(exp);
+
+        if (isExpired) config.headers.set('TokenRefresh', 1);
         if (!!token) config.headers[authKey] = `Bearer ${token}`;
         return { ...config, withCredentials: true };
       }

@@ -5,6 +5,7 @@ export type DefaultUser = { email: string } & DatabaseRecord;
 
 export type UserObject<TUser extends DefaultUser = DefaultUser> = {
   user: TUser | null | undefined;
+  loading: boolean;
   update: (user: Partial<TUser>) => void;
   login: (config: LoginProvider & HttpClient) => Promise<TUser>;
   logout: (config?: HttpClient) => Promise<void>;
