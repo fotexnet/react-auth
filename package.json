@@ -26,6 +26,7 @@
     "hook": "yarn grc component --type=hook",
     "build": "rm -rf dist && rollup -c",
     "test": "jest",
+    "commit": "cz",
     "lint": "eslint src",
     "prepare": "husky install && yarn build",
     "semantic-release": "semantic-release --branches main"
