@@ -1,4 +1,4 @@
-import { AxiosRequestConfig, isAxiosError } from 'axios';
+import axios, { AxiosRequestConfig, isAxiosError } from 'axios';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { HttpClient, Prettify } from '../../interfaces/Record';
 import cookies, { parseCookie } from '../../utils/cookies/cookies';
@@ -19,7 +19,7 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
                                                                      }: UserProviderConfig): UserProviderFactory<TUser> {
   const UserContext = createContext<UserObject<TUser> | null>(null);
   const UserProvider: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => {
-    const http = useMemo(() => httpClient || client, [httpClient]);
+    const http = httpClient ? httpClient : client;
     const [user, setUser] = useState<TUser | null | undefined>(undefined);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
@@ -54,7 +54,7 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
             headers: { Authorization: `Bearer ${token}`, TokenRefresh: 1 },
             withCredentials: true,
           } as AxiosRequestConfig<unknown>;
-          const response = await http.get<AuthResponse<TUser>>(profileUrl, conf);
+          const response = await axios.get<AuthResponse<TUser>>(profileUrl, conf);
           if(response){
             const newToken = response.headers[authKey.toLowerCase()]?.split(' ')?.pop()
             if (newToken) cookies.set(authKey, newToken, 365);
