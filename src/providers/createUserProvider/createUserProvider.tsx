@@ -22,7 +22,7 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
     const http = httpClient ? httpClient : client;
     const [user, setUser] = useState<TUser | null | undefined>(undefined);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [loading, setLoading] = useState<boolean>(true);
+    const [loading, setLoading] = useState<boolean  | null>(true);
     const [reTrigger, setReTrigger] = useState<boolean>(false);
 
     const extractLoginUrl = useCallback((provider: Provider) => {
@@ -141,7 +141,8 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
             } finally {
               cookies.delete(dataKey);
               cookies.delete(authKey);
-              setUser(null);
+              setUser(undefined);
+              setLoading(null)
             }
           },
         }}
