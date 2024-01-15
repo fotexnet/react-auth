@@ -5,7 +5,7 @@ export type DefaultUser = { email: string } & DatabaseRecord;
 
 export type UserObject<TUser extends DefaultUser = DefaultUser> = {
   user: TUser | null | undefined;
-  loading: boolean;
+  loading: boolean | null;
   update: (user: Partial<TUser>) => void;
   login: (config: LoginProvider & HttpClient) => Promise<TUser>;
   logout: (config?: HttpClient) => Promise<void>;
@@ -18,7 +18,7 @@ export type UserProviderConfig = Prettify<
 export type UserProviderUrls = { profileUrl: string; logoutUrl: string } & (
   | { loginUrl: string; localOnly: true }
   | { loginUrl: { local: string; social: string }; localOnly: false }
-);
+  );
 
 export type UserProviderFactory<TUser extends DefaultUser = DefaultUser> = {
   UserProvider: React.FC<React.PropsWithChildren<unknown>>;
