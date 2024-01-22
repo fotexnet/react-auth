@@ -112,6 +112,9 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
           update: (data: Partial<TUser>) => {
             setUser(prev => ({ ...prev, ...data } as TUser));
           },
+          remove: () => {
+            setUser(null);
+          },
           login: async ({
                           httpClient: hClient,
                           httpConfig: hConfig,
