@@ -113,6 +113,8 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
             setUser(prev => ({ ...prev, ...data } as TUser));
           },
           remove: () => {
+            cookies.delete(authKey);
+            cookies.delete(dataKey);
             setUser(null);
           },
           login: async ({
