@@ -60,7 +60,7 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
             if (newToken) cookies.set(authKey, newToken, 365);
           }
         } catch (err: any) {
-          if (isAxiosError(err) && err?.response?.status === 401) {
+          if (isAxiosError(err)) {
             cookies.delete(authKey);
             cookies.delete(dataKey);
             setUser(null);
