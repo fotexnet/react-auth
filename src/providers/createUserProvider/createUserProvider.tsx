@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig, isAxiosError } from 'axios';
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { HttpClient, Prettify } from '../../interfaces/Record';
 import cookies, { parseCookie } from '../../utils/cookies/cookies';
 import client from '../../utils/createHttpClient/createHttpClient';
@@ -7,6 +7,7 @@ import login, { AuthResponse, LoginProvider, Provider } from '../../utils/login/
 import { DefaultUser, UserProviderConfig, UserProviderFactory, UserObject, AuthGuardConfig } from './types';
 import { parseJwt } from '../../utils/parseJwt/parseJwt';
 import { hasExpired } from '../../utils/hasExpired/hasExpired';
+import fetchToken from '../../utils/fetchToken/fetchToken';
 
 function createUserProvider<TUser extends DefaultUser = DefaultUser>({
                                                                        authKey = 'authorization',
@@ -22,7 +23,7 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
     const http = httpClient ? httpClient : client;
     const [user, setUser] = useState<TUser | null | undefined>(undefined);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [loading, setLoading] = useState<boolean  | null>(true);
+    const [loading, setLoading] = useState<boolean | null>(true);
     const [reTrigger, setReTrigger] = useState<boolean>(false);
 
     const extractLoginUrl = useCallback((provider: Provider) => {
@@ -36,7 +37,7 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
       if (!token || !cachedUser) {
         cookies.delete(authKey);
         cookies.delete(dataKey);
-        setLoading(false)
+        setLoading(false);
         return;
       }
 
@@ -44,38 +45,26 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
 
       const isExpired = hasExpired(exp);
 
-      if(!isExpired){
-        setLoading(false)
+      if (!isExpired) {
+        setLoading(false);
       }
-      const fetchToken = async () => {
-        try {
-          setIsLoading(true)
-          const conf = {
-            headers: { Authorization: `Bearer ${token}`, TokenRefresh: 1 },
-            withCredentials: true,
-          } as AxiosRequestConfig<unknown>;
-          const response = await axios.get<AuthResponse<TUser>>(profileUrl, conf);
-          if(response){
-            const newToken = response.headers[authKey.toLowerCase()]?.split(' ')?.pop()
-            if (newToken) cookies.set(authKey, newToken, 365);
-          }
-        } catch (err: any) {
-          if (isAxiosError(err)) {
-            cookies.delete(authKey);
-            cookies.delete(dataKey);
-            setUser(null);
-          }
-        } finally {
-          setIsLoading(false)
-          setLoading(false)
-        }
-      };
 
       if (isExpired && !isLoading) {
-        void fetchToken();
+        void fetchToken({
+          dataKey,
+          authKey,
+          profileUrl,
+          token,
+          initialFunc: () => setIsLoading(true),
+          catchFunc: () => setUser(null),
+          finallyFunc: () => {
+            setIsLoading(false);
+            setLoading(false);
+          },
+        });
       }
 
-      setReTrigger(false)
+      setReTrigger(false);
       setUser(cachedUser);
     }, [reTrigger]);
 
@@ -89,20 +78,45 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
           const isExpired = hasExpired(exp);
 
           if (isExpired) {
-            setReTrigger(true)
+            setReTrigger(true);
           }
         }
       };
 
-      // Initial check when the component mounts
-      checkCookieExpiration();
-
-      // Check the cookie expiration every 5 seconds (adjust as needed)
+      // Check the cookie expiration every 2.5 seconds
       const intervalId = setInterval(checkCookieExpiration, 2500);
 
-      // Clean up the interval when the component unmounts
       return () => clearInterval(intervalId);
     }, []);
+
+    useEffect(() => {
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          const token = parseCookie<string>(cookies.get(authKey));
+
+          if (user) {
+            void fetchToken({
+              dataKey,
+              authKey,
+              profileUrl,
+              token: token!,
+              initialFunc: () => setIsLoading(true),
+              catchFunc: () => setUser(null),
+              finallyFunc: () => {
+                setIsLoading(false);
+                setLoading(false);
+              },
+            });
+          }
+        }
+      };
+
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      return () => {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
+    }, [user]);
 
     return (
       <UserContext.Provider
@@ -147,7 +161,7 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
               cookies.delete(dataKey);
               cookies.delete(authKey);
               setUser(undefined);
-              setLoading(null)
+              setLoading(null);
             }
           },
         }}
