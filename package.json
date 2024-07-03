@@ -1,8 +1,7 @@
 {
-  "version": "0.0.0-development",
+  "version": "1.0.0",
   "name": "@fotexnet/react-auth",
   "description": "",
-  "author": "Nagy Viktor",
   "license": "MIT",
   "main": "dist/cjs/index.js",
   "types": "dist/index.d.ts",
@@ -16,10 +15,6 @@
     "url": "https://github.com/fotexnet/react-auth.git"
   },
   "publishConfig": {},
-  "engines": {
-    "node": ">=18",
-    "npm": "use Yarn!"
-  },
   "scripts": {
     "grc": "npx generate-react-cli",
     "component": "yarn grc component",
