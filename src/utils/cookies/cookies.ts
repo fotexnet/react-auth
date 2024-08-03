@@ -1,3 +1,5 @@
+'use server';
+
 export function parseCookie<T>(value: string): T | null {
   const isBoolean = value === 'true' || value === 'false';
   const isNumber = !!value && !isNaN(+value);
@@ -13,7 +15,6 @@ export function createCookieName(str: string): string {
   for (let i: number = 0; i < trimmedStr.length; i++) {
     if (i === 0) {
       name += trimmedStr[i].toLowerCase();
-      continue;
     }
 
     const isUpper = /[A-Z]/.test(trimmedStr[i]);
@@ -21,14 +22,10 @@ export function createCookieName(str: string): string {
 
     if (isUpper && name.at(-1) !== delimiter) {
       name += delimiter + trimmedStr[i].toLowerCase();
-      continue;
     }
 
     if (isBlank) {
-      if (trimmedStr[i + 1] === ' ') continue;
-
       name += delimiter;
-      continue;
     }
 
     name += trimmedStr[i].toLowerCase();
@@ -47,18 +44,9 @@ function setCookie(cname: string, cvalue: unknown, exdays: number): void {
 }
 
 function getCookie(cname: string): string {
-  const name = createCookieName(cname) + '=';
-  const decodedCookie = decodeURIComponent(document.cookie);
-  const cookie = decodedCookie.split(';');
-  for (let i = 0; i < cookie.length; i++) {
-    let c = cookie[i];
-    while (c.charAt(0) === ' ') {
-      c = c.substring(1);
-    }
-    if (c.indexOf(name) === 0) {
-      return c.substring(name.length, c.length);
-    }
-  }
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${cname}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() ?? '';
   return '';
 }
 

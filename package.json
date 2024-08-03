@@ -43,6 +43,7 @@
     "@rollup/plugin-json": "^6.0.1",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.5",
+    "@storybook/react": "^8.2.7",
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "12.1.5",
     "@testing-library/react-hooks": "^8.0.1",

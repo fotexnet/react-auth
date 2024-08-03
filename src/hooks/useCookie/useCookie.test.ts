@@ -1,10 +1,10 @@
-import { act, renderHook } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-hooks';
 import useCookie from './useCookie';
 
 describe('useCookie', () => {
   beforeEach(() => {
     Object.defineProperty(document, 'cookie', {
-      value: 'my_cookie=John; expires=Thu, 01 Jan 2023 00:00:00 UTC; path=/',
+      value: 'myCookie=John; expires=Thu, 01 Jan 2025 00:00:00 UTC; path=/',
       writable: true,
     });
   });
@@ -18,7 +18,7 @@ describe('useCookie', () => {
     expect(result.current.cookie).toEqual('John');
   });
 
-  it('should set a new value', async () => {
+  it('should set a new value', () => {
     const { result } = renderHook(() => useCookie<string>('myCookie'));
     act(() => {
       result.current.set('Doe');
@@ -26,7 +26,7 @@ describe('useCookie', () => {
     expect(result.current.cookie).toEqual('Doe');
   });
 
-  it('should delete cookie', async () => {
+  it('should delete cookie', () => {
     const { result } = renderHook(() => useCookie<string>('myCookie'));
     act(() => {
       result.current.unset();

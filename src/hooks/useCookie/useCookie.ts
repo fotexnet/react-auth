@@ -23,7 +23,7 @@ function useCookie<T = unknown>(cname: string): UseCookie<T> {
     const value = cookies.get(cname);
     const parsedCookie = parseCookie<T>(value);
     setCookie(parsedCookie);
-  }, []);
+  }, [cname]);
 
   return { cookie, set, unset };
 }

@@ -1,45 +1,51 @@
-import axios, { AxiosRequestConfig, isAxiosError } from 'axios';
-import { AuthResponse } from '../login/login';
+import axios, { AxiosRequestConfig, AxiosResponse, isAxiosError } from 'axios';
 import cookies from '../cookies/cookies';
 
 type FetchTokenProps = {
   authKey: string;
-  dataKey: string
-  profileUrl: string
-  token: string
-  initialFunc: () => void
-  catchFunc: () => void
-  finallyFunc: () => void
-}
+  dataKey: string;
+  profileUrl: string;
+  token: string;
+  initialFunc: () => void;
+  catchFunc: () => void;
+  finallyFunc: () => void;
+};
+
+const setNewToken = (authKey: string, response: AxiosResponse): void => {
+  const newToken = response.headers[authKey.toLowerCase()]?.split(' ')?.pop();
+  if (newToken) cookies.set(authKey, newToken, 365);
+};
+
+const handleError = (authKey: string, dataKey: string, catchFunc: () => void): void => {
+  cookies.delete(authKey);
+  cookies.delete(dataKey);
+  if (catchFunc) catchFunc();
+};
 
 const fetchToken = async ({
-                            authKey,
-                            dataKey,
-                            profileUrl,
-                            token,
-                            initialFunc,
-                            catchFunc,
-                            finallyFunc,
-                          }: FetchTokenProps) => {
+  authKey,
+  dataKey,
+  profileUrl,
+  token,
+  initialFunc,
+  catchFunc,
+  finallyFunc,
+}: FetchTokenProps): Promise<void> => {
   try {
-    if (initialFunc) initialFunc();
+    initialFunc?.();
+
     const conf = {
       headers: { Authorization: `Bearer ${token}`, TokenRefresh: 1 },
       withCredentials: true,
     } as AxiosRequestConfig<unknown>;
+
     const response = await axios.get(profileUrl, conf);
-    if (response) {
-      const newToken = response.headers[authKey.toLowerCase()]?.split(' ')?.pop();
-      if (newToken) cookies.set(authKey, newToken, 365);
-    }
-  } catch (err: any) {
-    if (isAxiosError(err)) {
-      cookies.delete(authKey);
-      cookies.delete(dataKey);
-      if (catchFunc) catchFunc();
-    }
+
+    if (response) setNewToken(authKey, response);
+  } catch (err) {
+    if (isAxiosError(err)) handleError(authKey, dataKey, catchFunc);
   } finally {
-    if (finallyFunc) finallyFunc();
+    finallyFunc?.();
   }
 };
 

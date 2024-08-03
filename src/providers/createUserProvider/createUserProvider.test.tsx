@@ -26,7 +26,7 @@ jest.mock('axios', () => ({
 
 describe('createUserProvider', () => {
   let postSpy: jest.SpyInstance;
-  let factory: UserProviderFactory<User>;
+  let Factory: UserProviderFactory<User>;
   let Component: React.FC;
   const providerOptions: UserProviderConfig = {
     dataKey: 'user',
@@ -38,7 +38,7 @@ describe('createUserProvider', () => {
 
   beforeEach(() => {
     postSpy = jest.spyOn(client, 'post');
-    factory = createUserProvider<User>({
+    Factory = createUserProvider<User>({
       ...providerOptions,
     });
   });
@@ -49,14 +49,14 @@ describe('createUserProvider', () => {
 
   it('should return a provider', async () => {
     Component = () => {
-      const { user } = factory.useUser();
+      const { user } = Factory.useUser();
       return <div data-testid="user">{JSON.stringify(user)}</div>;
     };
 
     render(
-      <factory.UserProvider>
+      <Factory.UserProvider>
         <Component></Component>
-      </factory.UserProvider>
+      </Factory.UserProvider>
     );
 
     const node = await screen.findByTestId('user');
@@ -66,7 +66,7 @@ describe('createUserProvider', () => {
   it('should update the user', async () => {
     const updatedUser = { id: 1, email: 'dummy@test.com' };
     Component = () => {
-      const { user, update, logout } = factory.useUser();
+      const { user, update, logout } = Factory.useUser();
       return (
         <div>
           <div data-testid="user">{JSON.stringify(user)}</div>
@@ -81,9 +81,9 @@ describe('createUserProvider', () => {
     };
 
     render(
-      <factory.UserProvider>
+      <Factory.UserProvider>
         <Component></Component>
-      </factory.UserProvider>
+      </Factory.UserProvider>
     );
 
     const node = await screen.findByTestId('user');
