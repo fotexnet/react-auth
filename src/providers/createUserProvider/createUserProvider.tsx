@@ -1,23 +1,23 @@
-import axios, { AxiosRequestConfig, isAxiosError } from 'axios';
-import React, { createContext, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { AxiosRequestConfig } from 'axios';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { HttpClient, Prettify } from '../../interfaces/Record';
 import cookies, { parseCookie } from '../../utils/cookies/cookies';
 import client from '../../utils/createHttpClient/createHttpClient';
-import login, { AuthResponse, LoginProvider, Provider } from '../../utils/login/login';
-import { DefaultUser, UserProviderConfig, UserProviderFactory, UserObject, AuthGuardConfig } from './types';
-import { parseJwt } from '../../utils/parseJwt/parseJwt';
-import { hasExpired } from '../../utils/hasExpired/hasExpired';
 import fetchToken from '../../utils/fetchToken/fetchToken';
+import { hasExpired } from '../../utils/hasExpired/hasExpired';
+import login, { LoginProvider, Provider } from '../../utils/login/login';
+import { parseJwt } from '../../utils/parseJwt/parseJwt';
+import { AuthGuardConfig, DefaultUser, UserObject, UserProviderConfig, UserProviderFactory } from './types';
 
 function createUserProvider<TUser extends DefaultUser = DefaultUser>({
-                                                                       authKey = 'authorization',
-                                                                       dataKey,
-                                                                       httpClient,
-                                                                       httpConfig,
-                                                                       profileUrl,
-                                                                       profileUpdateInterval = 300,
-                                                                       ...config
-                                                                     }: UserProviderConfig): UserProviderFactory<TUser> {
+  authKey = 'authorization',
+  dataKey,
+  httpClient,
+  httpConfig,
+  profileUrl,
+  profileUpdateInterval = 300,
+  ...config
+}: UserProviderConfig): UserProviderFactory<TUser> {
   const UserContext = createContext<UserObject<TUser> | null>(null);
   const UserProvider: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => {
     const http = httpClient ? httpClient : client;
@@ -132,10 +132,10 @@ function createUserProvider<TUser extends DefaultUser = DefaultUser>({
             setUser(null);
           },
           login: async ({
-                          httpClient: hClient,
-                          httpConfig: hConfig,
-                          ...provider
-                        }: Prettify<LoginProvider & HttpClient>) => {
+            httpClient: hClient,
+            httpConfig: hConfig,
+            ...provider
+          }: Prettify<LoginProvider & HttpClient>) => {
             const url: string = extractLoginUrl(provider.provider);
             const httpObj: HttpClient = {
               httpClient: hClient || http,
