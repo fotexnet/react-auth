@@ -1,26 +1,25 @@
 import axios, { AxiosRequestConfig, isAxiosError } from 'axios';
-import { AuthResponse } from '../login/login';
 import cookies from '../cookies/cookies';
 
 type FetchTokenProps = {
   authKey: string;
-  dataKey: string
-  profileUrl: string
-  token: string
-  initialFunc: () => void
-  catchFunc: () => void
-  finallyFunc: () => void
-}
+  dataKey: string;
+  profileUrl: string;
+  token: string;
+  initialFunc: () => void;
+  catchFunc: () => void;
+  finallyFunc: () => void;
+};
 
 const fetchToken = async ({
-                            authKey,
-                            dataKey,
-                            profileUrl,
-                            token,
-                            initialFunc,
-                            catchFunc,
-                            finallyFunc,
-                          }: FetchTokenProps) => {
+  authKey,
+  dataKey,
+  profileUrl,
+  token,
+  initialFunc,
+  catchFunc,
+  finallyFunc,
+}: FetchTokenProps) => {
   try {
     if (initialFunc) initialFunc();
     const conf = {
